@@ -26,57 +26,65 @@ function observe() {
 	})
 }
 
-async function updateYourBlocklist(url, e) {
-	const response = await browser.runtime.sendMessage({action: 'update', url: url})
-	if (response.showResults === true) {
-		e.style.backgroundColor = 'lightcoral'
-	} else {
-		e.style.display = 'none'
-	}
+function getClassToAdd(showResults) {
+	return showResults === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
 }
 
-function createButton(url, div) {
+function findAndReplace(response, url) {
+	const classToAdd = getClassToAdd(response.showResults)
+	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+		function(elem) {
+			const pos = elem.classList.contains('g') ? 0 : 1
+			const elemUrl = getUrl(elem, pos)
+			if (elemUrl.endsWith(url)) {
+				elem.getElementsByClassName('sesb-block-div')[0].classList.add('sesb-hidden')
+				elem.classList.add(classToAdd)
+			}
+		}
+	)
+}
+
+async function updateYourBlocklist(url) {
+	const response = await browser.runtime.sendMessage({action: 'update', url: url}).then((resp) => findAndReplace(resp, url))
+}
+
+function createButton(url, div, elem) {
 	const blockBtn = document.createElement('button')
 	blockBtn.innerText = url
 	blockBtn.title = 'Block ' + url + '?'
-	blockBtn.style.cursor = 'pointer'
-	blockBtn.style.background = 'none'
-	blockBtn.style.border = 'none'
-	blockBtn.style.color = 'darkred'
+	blockBtn.classList.add('sesb-block-button')
 	blockBtn.addEventListener('click', function() {
-		updateYourBlocklist(url, elem)
-	})
-	blockBtn.addEventListener('mouseover', function() {
-		blockBtn.style.fontWeight = 'bold'
-	})
-	blockBtn.addEventListener('mouseout', function() {
-		blockBtn.style.fontWeight = 'normal'
+		updateYourBlocklist(url)
 	})
 	div.appendChild(blockBtn)
 }
 
-function addButtons(elem, url, domain) {
+function addButtons(elem, url, domain, addBlockButtons) {
 	const div = document.createElement('div')
-	div.style.color = 'crimson'
-	div.innerHTML = '<b>Block:</b>'
-	createButton(domain, div)
-	if (url !== domain && !url.startsWith('www.')) {
-		createButton(url, div)
+	div.classList.add('sesb-block-div')
+	if (addBlockButtons !== 1) {
+		div.classList.add('sesb-hidden')
 	}
-	elem.style.height = ''
+	div.innerHTML = 'Block:'
+	createButton(domain, div, elem)
+	if (url !== domain && !url.startsWith('www.')) {
+		createButton(url, div, elem)
+	}
+	elem.style.removeProperty('height')
 	elem.appendChild(div)
 }
 
+function getUrl(e, pos) {
+	return e.getElementsByTagName('a')[pos].href.replace(/^http.*:\/\/|\/.*$/g, '')
+}
+
 async function removeElement(e, pos) {
-	const url = e.getElementsByTagName('a')[pos].href.replace(/^http.*:\/\/|\/.*$/g, '')
-	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.log(e))
-	if (response.toRemove === false && response.addBlockButtons === 1) {
-		addButtons(e, url, response.domain)
-	} else if (response.toRemove === true) {
-		if (response.showResults === 1) {
-			e.style.backgroundColor = 'lightcoral'
-		} else {
-			e.style.display = 'none'
-		}
+	const url = getUrl(e, pos)
+	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
+	if (response.toRemove === true) {
+		const classToAdd = getClassToAdd(response.showResults)
+		e.classList.add(classToAdd)
+	} else {
+		addButtons(e, url, response.domain, response.addBlockButtons)
 	}
 }

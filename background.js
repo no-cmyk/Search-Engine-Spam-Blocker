@@ -6,27 +6,27 @@ browser.runtime.onMessage.addListener(handleMessages)
 
 async function handleMessages(data) {
 	switch (data.action) {
-	case 'check':
-		return Promise.resolve(checkUrl(data.url))
-	case 'update':
-		return updateYourBlocklist(data.url)
-	case 'update-multiple':
-		updateYourBlocklistMultiple(data.url)
-		break
-	case 'load-your-blocklist':
-		return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
-	case 'update-spam-lists':
-		needsUpdate = true
-		updateLists()
-		break
-	case 'remove':
-		removeFromYourBlocklist(data.url)
-		break
-	case 'clear-blocklist':
-		clearBlocklist()
-		break
-	default:
-		break
+		case 'check':
+			return Promise.resolve(checkUrl(data.url))
+		case 'update':
+			return Promise.resolve(updateYourBlocklist(data.url))
+		case 'update-multiple':
+			updateYourBlocklistMultiple(data.url)
+			break
+		case 'load-your-blocklist':
+			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
+		case 'update-spam-lists':
+			needsUpdate = true
+			updateLists()
+			break
+		case 'remove':
+			removeFromYourBlocklist(data.url)
+			break
+		case 'clear-blocklist':
+			clearBlocklist()
+			break
+		default:
+			break
 	}
 }
 
@@ -62,12 +62,10 @@ async function checkUrl(url) {
 	return returnObj
 }
 
-async function removeFromYourBlocklist(url) {
-	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+function removeFromYourBlocklist(url) {
 	delete localBlocklist[url]
 	delete yourBlocklist[url]
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
-	return settings
 }
 
 function clearBlocklist() {
@@ -88,11 +86,14 @@ async function loadYourBlocklist() {
 	}
 }
 
-function updateYourBlocklist(url) {
+async function updateYourBlocklist(url) {
+	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 	const urlObj = {}
 	urlObj[url] = true
 	localBlocklist = Object.assign(localBlocklist, urlObj)
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
+	const returnObj = {showResults: settings.showResults}
+	return returnObj
 }
 
 function yourBlocklistBulkUpdate(domains) {
@@ -105,10 +106,10 @@ function yourBlocklistBulkUpdate(domains) {
 }
 
 function updateYourBlocklistMultiple(domains) {
-	const updateWorker = new Worker(browser.runtime.getURL('list_worker.js'))
+	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
 	updateWorker.onmessage = function() {
-yourBlocklistBulkUpdate(domains)
-}
+		yourBlocklistBulkUpdate(domains)
+	}
 	updateWorker.postMessage(['ciao'])
 }
 
@@ -122,8 +123,8 @@ async function loadUpdateSettings() {
 }
 
 async function updateLists() {
-	const updateWorker = new Worker(browser.runtime.getURL('list_worker.js'))
-	updateWorker.onmessage = workerOnMessage
+	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
+	updateWorker.onmessage = updateOnlineLists
 	const settings = await loadUpdateSettings()
 	updateWorker.postMessage(['ciao'])
 }
@@ -178,10 +179,6 @@ function updateOnlineLists() {
 function updateFlag() {
 	browser.storage.local.set({sesbLastUpdate: Date.now()})
 	needsUpdate = false
-}
-
-function workerOnMessage(message) {
-	updateOnlineLists()
 }
 
 updateLists()

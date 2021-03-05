@@ -89,3 +89,7 @@ img {
 	color: green;
 	font-weight: bold;
 }
+
+:focus {
+	outline: none;
+}

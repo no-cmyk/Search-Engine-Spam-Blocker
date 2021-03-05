@@ -1,0 +1,28 @@
+.sesb-blocked-show {
+	background-color: lightcoral;
+	outline: 2px solid lightcoral;
+}
+
+.sesb-block-div {
+	color: crimson;
+	font-weight: bold;
+}
+
+.sesb-block-button {
+	cursor: pointer;
+	background: none;
+	border: none;
+	color: darkred;
+}
+
+.sesb-block-button:hover {
+	text-shadow: 1px 0px 2px lightcoral;
+}
+
+.sesb-hidden {
+	display: none;
+}
+
+:focus {
+	outline: none;
+}

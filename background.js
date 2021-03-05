@@ -1,8 +1,6 @@
 var localBlocklist;
 var localTLDlist;
 var needsUpdate = false;
-browser.runtime.onStartup.addListener(updateLists);
-browser.runtime.onInstalled.addListener(updateLists);
 browser.runtime.onMessage.addListener(isToRemove);
 
 function isToRemove(url, sender, response) {
@@ -87,3 +85,5 @@ function workerOnMessage(message) {
 		console.log("Lists loaded");
 	}
 }
+
+updateLists();

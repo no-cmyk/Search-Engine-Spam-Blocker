@@ -88,7 +88,7 @@ function updateYourBlocklistMultiple(domains) {
 	updateWorker.onmessage = function() {
 		updateMultipleWithWorker(domains)
 	}
-	updateWorker.postMessage(['ciao'])
+	updateWorker.postMessage(['hello'])
 }
 
 function updateMultipleWithWorker(domains) {
@@ -122,12 +122,14 @@ async function loadYourBlocklist() {
 function retainSuffixList(text) {
 	suffixList = {}
 	for (let i = 0; i < text.length; i++) {
-		if (text[i] !== '' && (text[i])[0] !== '/') {
+		if (text[i] === '// ===END ICANN DOMAINS===') {
+			break
+		} else if (text[i] !== '' && (text[i])[0] !== '/') {
 			suffixList[text[i]] = true
 		}
 	}
-	browser.storage.local.set({sesbTLDlist: JSON.stringify(suffixList)})
-	console.log('TLD list OK')
+	browser.storage.local.set({sesbSuffixList: JSON.stringify(suffixList)})
+	console.log('Suffix list OK')
 }
 
 function retainDefaultBlocklist(text) {
@@ -154,7 +156,7 @@ function fetchSuffixList() {
 
 async function checkIfNeedsUpdate() {
 	const lastUpdate = await browser.storage.local.get('sesbLastUpdate').then((r) => r.sesbLastUpdate)
-	suffixList = await browser.storage.local.get('sesbTLDlist').then((r) => r.sesbTLDlist)
+	suffixList = await browser.storage.local.get('sesbSuffixList').then((r) => r.sesbSuffixList)
 	defaultBlocklist = await browser.storage.local.get('sesbBlocklist').then((r) => r.sesbBlocklist)
 	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || (Date.now() - lastUpdate > 604800)) {
 		needsUpdate = true
@@ -165,7 +167,7 @@ async function updateLists() {
 	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
 	updateWorker.onmessage = updateOnlineLists
 	const settings = await checkIfNeedsUpdate()
-	updateWorker.postMessage(['ciao'])
+	updateWorker.postMessage(['hello'])
 }
 
 function updateOnlineLists() {

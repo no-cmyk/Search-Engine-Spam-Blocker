@@ -4,11 +4,11 @@ let enabled = 1
 document.addEventListener('click', handleClicks)
 
 function handleClicks(click) {
-	const initiator = click.srcElement.id
 	let settingsToSave
-	switch (initiator) {
+	switch (click.srcElement.id) {
 		case 'enabled':
 			settingsToSave = {showBlocked: showBlocked, showButtons: showButtons, enabled: (enabled ^= true)}
+			showOrHideSettings()
 			return browser.storage.local.set({sesbSettings: settingsToSave})
 		case 'show-results':
 			settingsToSave = {showBlocked: (showBlocked ^= true), showButtons: showButtons, enabled: enabled}
@@ -20,7 +20,7 @@ function handleClicks(click) {
 			browser.runtime.sendMessage({action: 'update-spam-lists'})
 			break
 		case 'manage-your-blocklist':
-			browser.tabs.create({url: browser.runtime.getURL('page/page.html')})
+			browser.tabs.create({url: browser.runtime.getURL('options/options.html')})
 			break
 		default:
 			break
@@ -36,6 +36,17 @@ function handleNullSettings(settings) {
 	document.getElementById('enabled').checked = enabled
 	document.getElementById('show-results').checked = showBlocked
 	document.getElementById('add-block-buttons').checked = showButtons
+	showOrHideSettings()
+}
+
+function showOrHideSettings() {
+	if (enabled === 0) {
+		document.querySelectorAll('.to-hide').forEach(function(e) {e.classList.add('hidden')})
+		document.getElementById('manage-your-blocklist').classList.add('hidden')
+	} else {
+		document.querySelectorAll('.to-hide').forEach(function(e) {e.classList.remove('hidden')})
+		document.getElementById('manage-your-blocklist').classList.remove('hidden')
+	}
 }
 
 async function loadSettings() {

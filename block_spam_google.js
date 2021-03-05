@@ -49,14 +49,11 @@ async function updateYourBlocklist(url) {
 }
 
 function createButton(url, div, elem) {
-	const blockBtn = document.createElement('button')
-	blockBtn.innerText = url
-	blockBtn.title = 'Block ' + url + '?'
-	blockBtn.classList.add('sesb-block-button')
-	blockBtn.addEventListener('click', function() {
-		updateYourBlocklist(url)
-	})
-	div.appendChild(blockBtn)
+	const button = document.createElement('button')
+	button.innerText = url
+	button.title = 'Block ' + url + '?'
+	button.addEventListener('click', function(){updateYourBlocklist(url)})
+	div.appendChild(button)
 }
 
 function addButtons(elem, url, domain, showButtons) {

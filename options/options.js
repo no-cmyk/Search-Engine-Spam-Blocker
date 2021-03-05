@@ -16,8 +16,7 @@ function addListeners() {
 }
 
 function handleClicks(click) {
-	const initiator = click.srcElement.id
-	switch (initiator) {
+	switch (click.srcElement.id) {
 		case 'domain':
 			removeFromYourBlocklist(click.srcElement)
 			break

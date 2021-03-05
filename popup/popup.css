@@ -3,13 +3,14 @@ body {
 	padding: 10px;
 	width: 185px;
 	text-align: center;
+	cursor: default !important;
 }
 
 button {
 	color: white;
 	font-size: 1em;
 	cursor: pointer;
-	padding: 4px 14px;
+	padding: 3px 14px 4px 14px;
 	border: none;
 	background-color: darkorange;
 	border-radius: 1em;
@@ -32,6 +33,7 @@ h3 {
 .switch input {
 	position: absolute;
 	opacity: 0;
+	cursor: pointer;
 }
 
 .switch {
@@ -40,6 +42,7 @@ h3 {
 	width: 1.6em;
 	background: bisque;
 	border-radius: 1em;
+	cursor: pointer;
 }
 
 .switch div {
@@ -56,4 +59,8 @@ h3 {
 
 :focus {
 	outline: none;
+}
+
+.hidden {
+	opacity: 0.5;
 }

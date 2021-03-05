@@ -1,72 +1,18 @@
 body {
-	display: block;
-	font-family: Arial, sans-serif;
-	padding: 4px;
-	color: #1f1f14;
-	width: 250px;
-	overflow: hidden;
-}
-
-.hidden {
-	display: none;
-}
-
-input, label {
-	float: left;
+	font-family: sans-serif;
+	padding: 10px;
+	width: 185px;
 }
 
 button {
 	font-size: 1em;
+	cursor: pointer;
 	padding: 4px;
-	padding-left: 4px;
-	padding-right: 4px;
-	cursor: pointer;
-	margin-top: 8px;
-	width: 250px;
-}
-
-ul {
-	width: 245px;
-	padding: 2px;
-	list-style-type: none;
-	max-height: 200px;
-	min-height: 20px;
-	overflow: auto;
-	background-color: #f5f5ef;
-	margin-top: 8px;
-	-webkit-box-shadow: 0 2px 3px #ceceb1 inset;
-}
-
-li {
-	padding: 2px;
-	color: #332600;
-	cursor: pointer;
-}
-
-li:hover {
-	color: red;
-	text-decoration: line-through;
-	background-color: pink;
+	width: 100%;
 }
 
 h3 {
 	margin: 0;
-	font-size: 1em;
-}
-
-hr {
-	margin-top: 14px;
-	border: 0;
-	border-top: 1px dotted #ceceb1;
-}
-
-textarea {
-	width: 245px;
-	height: 75px;
-	resize: none;
-	font-family: Arial, sans-serif;
-}
-
-#add-domains-button {
-	margin-top: -10px;
+	color: darkorange;
+	text-align: center;
 }

@@ -1,44 +1,25 @@
-const yourBlocklistElem = document.getElementById("your-blocklist");
-const exportElem = document.getElementById('export');
 const addDomainsButtonElem = document.getElementById('add-domains-button');
 const addDomainsTextareaElem = document.getElementById('add-domains-textarea');
 var showResults = 0;
 var addBlockButtons = 1;
-document.addEventListener("click", handleClicks);
+document.addEventListener('click', handleClicks);
 
 function handleClicks(click) {
 	var initiator = click.srcElement.id;
 	switch (initiator) {
-		case "show-results":
+		case 'show-results':
 			var settingsToSave = {showResults: (showResults ^= true), addBlockButtons: addBlockButtons};
 			return browser.storage.local.set({sesbSettings: settingsToSave});
-		case "add-block-buttons":
+		case 'add-block-buttons':
 			var settingsToSave = {showResults: showResults, addBlockButtons: (addBlockButtons ^= true)};
 			return browser.storage.local.set({sesbSettings: settingsToSave});
-		case "update-spam-lists":
-			browser.runtime.sendMessage({action: "update-spam-lists"});
-		case "export":
-			exportElem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(yourBlocklistElem.innerText));
-			exportElem.setAttribute('download', 'sesb_blocklist_' + Date.now() + '.txt');
-			break;
-		case "add-domains-button":
-			addDomains(addDomainsTextareaElem.value);
-			break;
+		case 'update-spam-lists':
+			browser.runtime.sendMessage({action: 'update-spam-lists'});
+		case 'manage-your-blocklist':
+			browser.tabs.create({url: browser.runtime.getURL('page/page.html')});
 		default:
 			break;
 	}
-}
-
-function addDomains(domains) {
-	domainsAsList = domains.split('\n').filter(e => e);
-	browser.runtime.sendMessage({action: "update-multiple", url: domainsAsList});
-	for (var i = 0; i < domainsAsList.length; i++) {
-		li = document.createElement("li");
-		li.innerText = domainsAsList[i];
-		li.addEventListener("mouseup", function(){removeFromYourBlocklist(this);});
-		yourBlocklistElem.appendChild(li);
-	}
-	addDomainsTextareaElem.value = '';
 }
 
 function handleNullSettings(settings) {
@@ -52,18 +33,6 @@ function handleNullSettings(settings) {
 
 async function loadSettings() {
 	browser.storage.local.get('sesbSettings').then(r => r.sesbSettings).then(r => handleNullSettings(r));
-	var yourBlocklist = await browser.runtime.sendMessage({action: "load-your-blocklist"});
-	for (var i = 0; i < yourBlocklist.length; i++) {
-		li = document.createElement("li");
-		li.innerText = yourBlocklist[i];
-		li.addEventListener("mouseup", function(){removeFromYourBlocklist(this);});
-		yourBlocklistElem.appendChild(li);
-	}
-}
-
-function removeFromYourBlocklist(li) {
-	browser.runtime.sendMessage({action: "remove", url: li.innerText});
-	li.remove();
 }
 
 loadSettings();

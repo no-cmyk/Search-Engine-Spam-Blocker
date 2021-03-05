@@ -6,23 +6,25 @@ browser.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(data, sender, response) {
 	switch (data.action) {
-		case "check":
+		case 'check':
 			return Promise.resolve(checkUrl(data.url));
-		case "update":
+		case 'update':
 			updateYourBlocklist(data.url);
 			break;
-		case "update-multiple":
+		case 'update-multiple':
 			updateYourBlocklistMultiple(data.url);
 			break;
-		case "load-your-blocklist":
+		case 'load-your-blocklist':
 			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort());
-		case "update-spam-lists":
+		case 'update-spam-lists':
 			needsUpdate = true;
 			updateLists();
 			break;
-		case "remove":
+		case 'remove':
 			removeFromYourBlocklist(data.url);
 			break;
+		case 'clear-blocklist':
+			clearBlocklist();
 		default:
 			break;
 	}
@@ -62,6 +64,14 @@ function removeFromYourBlocklist(url) {
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)});
 }
 
+function clearBlocklist() {
+	for (const property in yourBlocklist) {
+		delete localBlocklist[property];
+	}
+	yourBlocklist = {};
+	browser.storage.local.set({sesbYourBlocklist: undefined});
+}
+
 async function loadYourBlocklist() {
 	var yourBlocklistJson = await browser.storage.local.get('sesbYourBlocklist').then(r => r.sesbYourBlocklist);
 	if (yourBlocklistJson) {
@@ -89,7 +99,7 @@ function yourBlocklistBulkUpdate(domains) {
 function updateYourBlocklistMultiple(domains) {
 	var updateWorker = new Worker(browser.runtime.getURL('list_worker.js'));
 	updateWorker.onmessage = function() {yourBlocklistBulkUpdate(domains)};
-	updateWorker.postMessage(["ciao"]);
+	updateWorker.postMessage(['ciao']);
 }
 
 async function loadUpdateSettings() {
@@ -105,18 +115,18 @@ async function updateLists() {
 	var updateWorker = new Worker(browser.runtime.getURL('list_worker.js'));
 	updateWorker.onmessage = workerOnMessage;
 	var settings = await loadUpdateSettings();
-	updateWorker.postMessage(["ciao"]);
+	updateWorker.postMessage(['ciao']);
 }
 
 function retainSuffixList(text) {
 	localTLDlist = {};
 	for (var i = 0; i < text.length; i++) {
-		if (text[i] !== "" && (text[i])[0] !== "/") {
+		if (text[i] !== '' && (text[i])[0] !== '/') {
 			localTLDlist[text[i]] = true;
 		}
 	}
 	browser.storage.local.set({sesbTLDlist: JSON.stringify(localTLDlist)});
-	console.log("TLD list OK");
+	console.log('TLD list OK');
 }
 
 function retainBlocklist(text) {
@@ -126,29 +136,29 @@ function retainBlocklist(text) {
 	}
 	loadYourBlocklist();
 	browser.storage.local.set({sesbBlocklist: JSON.stringify(localBlocklist)});
-	console.log("Blocklist OK");
+	console.log('Blocklist OK');
 }
 
 function setBlocklist() {
 	fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
 		.then(response => response.text())
-		.then(text => retainBlocklist(text.split("\n")));
+		.then(text => retainBlocklist(text.split('\n')));
 }
 
 function setSuffixList() {
 	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
 		.then(response => response.text())
-		.then(text => retainSuffixList(text.split("\n")));
+		.then(text => retainSuffixList(text.split('\n')));
 }
 
 function updateOnlineLists() {
 	if (needsUpdate) {
-		console.log("Updating lists...");
+		console.log('Updating lists...');
 		setSuffixList();
 		setBlocklist();
 		updateFlag();
 	} else {
-		console.log("Loading cached lists");
+		console.log('Loading cached lists');
 		localTLDlist = JSON.parse(localTLDlist);
 		localBlocklist = JSON.parse(localBlocklist);
 		loadYourBlocklist();

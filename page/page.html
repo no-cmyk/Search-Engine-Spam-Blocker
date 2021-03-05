@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>SESB Settings</title>
+		<link rel="stylesheet" href="page.css"/>
+	</head>
+	<body>
+		<img src="../icons/sesb_icon_48.png"/>
+		<div class="section">
+			<div class="title">
+				<h3>Import blocklist from file:</h3>
+				<br>
+			</div>
+			<div class="content">
+				<input id="import" type="file" accept=".txt">
+			</div>
+		</div>
+		<div class="section">
+			<div class="title">
+				<h3>Manually add domains to block:</h3>
+				<h5>(One domain per line)</h5>
+				<br>
+			</div>
+			<div class="content">
+				<textarea id="add-domains-textarea"></textarea>
+				<br>
+				<button id="add-domains-button">Add domains</button>
+			</div>
+		</div>
+		<div class="section">
+			<div class="title">
+				<h3>Your blocklist:</h3>
+				<h5>Click on a domain to unblock it</h5>
+			</div>
+			<div class="content">
+				<ul id="your-blocklist" title="Unblock this domain?"></ul>
+				<a href="" id="export"><button>Export blocklist to file</button></a> <button class="dangerous" id="clear-blocklist">Clear blocklist</button>
+			</div>
+		</div>
+		<div class="section">
+			<div class="title">
+				<h3>Built-in blocklist:</h3>
+				<br>
+			</div>
+			<div class="content">
+				<button id="update-spam-lists">Force update built-in blocklist</button>
+				<br><br>
+				(Note that the built-in list gets automatically updated once a week)
+				<br>
+				<span class="result-ok hidden" id="result-ok">OK ;)</span>
+				<br>
+				<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocklist">Built-in blocklist page on GitHub</a>
+			</div>
+		</div>
+		<script src="page.js"></script>
+	</body>
+</html>

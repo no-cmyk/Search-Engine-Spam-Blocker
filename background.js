@@ -1,17 +1,17 @@
-let localBlocklist
-let localTLDlist
+let defaultBlocklist
+let suffixList
 let needsUpdate = false
 let yourBlocklist = {}
 browser.runtime.onMessage.addListener(handleMessages)
 
-async function handleMessages(data) {
-	switch (data.action) {
+async function handleMessages(message) {
+	switch (message.action) {
 		case 'check':
-			return Promise.resolve(checkUrl(data.url))
+			return Promise.resolve(checkUrl(message.url))
 		case 'update':
-			return Promise.resolve(updateYourBlocklist(data.url))
+			return Promise.resolve(updateYourBlocklist(message.url))
 		case 'update-multiple':
-			updateYourBlocklistMultiple(data.url)
+			updateYourBlocklistMultiple(message.url)
 			break
 		case 'load-your-blocklist':
 			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
@@ -20,7 +20,7 @@ async function handleMessages(data) {
 			updateLists()
 			break
 		case 'remove':
-			removeFromYourBlocklist(data.url)
+			removeFromYourBlocklist(message.url)
 			break
 		case 'clear-blocklist':
 			clearBlocklist()
@@ -30,14 +30,7 @@ async function handleMessages(data) {
 	}
 }
 
-function handleNullSettings(settings) {
-	if (settings !== undefined) {
-		return settings
-	} else {
-		const settingsObj = {showResults: 0, addBlockButtons: 1, enabled: 1}
-		return settingsObj
-	}
-}
+/*--- Domain check ---*/
 
 async function checkUrl(url) {
 	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
@@ -49,7 +42,7 @@ async function checkUrl(url) {
 	if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
 		for (let i = 0; i < urlArray.length; i++) {
 			const toCheck = urlArray.slice(i, urlArray.length).join('.')
-			if (localTLDlist[toCheck]) {
+			if (suffixList[toCheck]) {
 				noSubUrl = urlArray.slice(i-1, urlArray.length).join('.')
 				break
 			}
@@ -57,67 +50,113 @@ async function checkUrl(url) {
 	} else {
 		noSubUrl = urlArray.slice(0, 3).join('.')
 	}
-	const toRemove = (localBlocklist[noSubUrl] !== undefined || localBlocklist[url] !== undefined)
-	const returnObj = {toRemove: toRemove, domain: noSubUrl, showResults: settings.showResults, addBlockButtons: settings.addBlockButtons}
+	const toRemove = (defaultBlocklist[noSubUrl] !== undefined || defaultBlocklist[url] !== undefined)
+	const returnObj = {toRemove: toRemove, domain: noSubUrl, showBlocked: settings.showBlocked, showButtons: settings.showButtons}
 	return returnObj
 }
 
+/*--- Remove from your blocklist ---*/
+
 function removeFromYourBlocklist(url) {
-	delete localBlocklist[url]
+	delete defaultBlocklist[url]
 	delete yourBlocklist[url]
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 }
 
 function clearBlocklist() {
 	for (const property in yourBlocklist) {
-		if (Object.prototype.hasOwnProperty.call(yourBlocklist, property)) {
-			delete localBlocklist[property]
-		}
+		delete defaultBlocklist[property]
 	}
 	yourBlocklist = {}
 	browser.storage.local.set({sesbYourBlocklist: undefined})
+}
+
+/*--- Update your blocklist ---*/
+
+async function updateYourBlocklist(url) {
+	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+	const urlObj = {}
+	urlObj[url] = true
+	defaultBlocklist = Object.assign(defaultBlocklist, urlObj)
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
+	const returnObj = {showBlocked: settings.showBlocked}
+	return returnObj
+}
+
+function updateYourBlocklistMultiple(domains) {
+	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
+	updateWorker.onmessage = function() {
+		updateMultipleWithWorker(domains)
+	}
+	updateWorker.postMessage(['ciao'])
+}
+
+function updateMultipleWithWorker(domains) {
+	const urlObj = {}
+	for (let i = 0; i < domains.length; i++) {
+		urlObj[domains[i]] = true
+	}
+	defaultBlocklist = Object.assign(defaultBlocklist, urlObj)
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
+}
+
+/*--- Automatic update ---*/
+
+function handleNullSettings(settings) {
+	if (settings !== undefined) {
+		return settings
+	} else {
+		const settingsObj = {showBlocked: 0, showButtons: 0, enabled: 1}
+		return settingsObj
+	}
 }
 
 async function loadYourBlocklist() {
 	const yourBlocklistJson = await browser.storage.local.get('sesbYourBlocklist').then((r) => r.sesbYourBlocklist)
 	if (yourBlocklistJson) {
 		yourBlocklist = JSON.parse(yourBlocklistJson)
-		localBlocklist = Object.assign(localBlocklist, yourBlocklist)
+		defaultBlocklist = Object.assign(defaultBlocklist, yourBlocklist)
 	}
 }
 
-async function updateYourBlocklist(url) {
-	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
-	const urlObj = {}
-	urlObj[url] = true
-	localBlocklist = Object.assign(localBlocklist, urlObj)
-	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
-	const returnObj = {showResults: settings.showResults}
-	return returnObj
-}
-
-function yourBlocklistBulkUpdate(domains) {
-	const urlObj = {}
-	for (let i = 0; i < domains.length; i++) {
-		urlObj[domains[i]] = true
+function retainSuffixList(text) {
+	suffixList = {}
+	for (let i = 0; i < text.length; i++) {
+		if (text[i] !== '' && (text[i])[0] !== '/') {
+			suffixList[text[i]] = true
+		}
 	}
-	localBlocklist = Object.assign(localBlocklist, urlObj)
-	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
+	browser.storage.local.set({sesbTLDlist: JSON.stringify(suffixList)})
+	console.log('TLD list OK')
 }
 
-function updateYourBlocklistMultiple(domains) {
-	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
-	updateWorker.onmessage = function() {
-		yourBlocklistBulkUpdate(domains)
+function retainDefaultBlocklist(text) {
+	defaultBlocklist = {}
+	for (let i = 0; i < text.length; i++) {
+		defaultBlocklist[text[i]] = true
 	}
-	updateWorker.postMessage(['ciao'])
+	loadYourBlocklist()
+	browser.storage.local.set({sesbBlocklist: JSON.stringify(defaultBlocklist)})
+	console.log('Blocklist OK')
 }
 
-async function loadUpdateSettings() {
+function fetchDefaultBlocklist() {
+	fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
+		.then((response) => response.text())
+		.then((text) => retainDefaultBlocklist(text.split('\n')))
+}
+
+function fetchSuffixList() {
+	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
+		.then((response) => response.text())
+		.then((text) => retainSuffixList(text.split('\n')))
+}
+
+async function checkIfNeedsUpdate() {
 	const lastUpdate = await browser.storage.local.get('sesbLastUpdate').then((r) => r.sesbLastUpdate)
-	localTLDlist = await browser.storage.local.get('sesbTLDlist').then((r) => r.sesbTLDlist)
-	localBlocklist = await browser.storage.local.get('sesbBlocklist').then((r) => r.sesbBlocklist)
-	if (!lastUpdate || !localTLDlist || !localBlocklist || (Date.now() - lastUpdate > 604800)) {
+	suffixList = await browser.storage.local.get('sesbTLDlist').then((r) => r.sesbTLDlist)
+	defaultBlocklist = await browser.storage.local.get('sesbBlocklist').then((r) => r.sesbBlocklist)
+	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || (Date.now() - lastUpdate > 604800)) {
 		needsUpdate = true
 	}
 }
@@ -125,60 +164,23 @@ async function loadUpdateSettings() {
 async function updateLists() {
 	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
 	updateWorker.onmessage = updateOnlineLists
-	const settings = await loadUpdateSettings()
+	const settings = await checkIfNeedsUpdate()
 	updateWorker.postMessage(['ciao'])
-}
-
-function retainSuffixList(text) {
-	localTLDlist = {}
-	for (let i = 0; i < text.length; i++) {
-		if (text[i] !== '' && (text[i])[0] !== '/') {
-			localTLDlist[text[i]] = true
-		}
-	}
-	browser.storage.local.set({sesbTLDlist: JSON.stringify(localTLDlist)})
-	console.log('TLD list OK')
-}
-
-function retainBlocklist(text) {
-	localBlocklist = {}
-	for (let i = 0; i < text.length; i++) {
-		localBlocklist[text[i]] = true
-	}
-	loadYourBlocklist()
-	browser.storage.local.set({sesbBlocklist: JSON.stringify(localBlocklist)})
-	console.log('Blocklist OK')
-}
-
-function setBlocklist() {
-	fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
-		.then((response) => response.text())
-		.then((text) => retainBlocklist(text.split('\n')))
-}
-
-function setSuffixList() {
-	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
-		.then((response) => response.text())
-		.then((text) => retainSuffixList(text.split('\n')))
 }
 
 function updateOnlineLists() {
 	if (needsUpdate) {
 		console.log('Updating lists...')
-		setSuffixList()
-		setBlocklist()
-		updateFlag()
+		fetchSuffixList()
+		fetchDefaultBlocklist()
+		browser.storage.local.set({sesbLastUpdate: Date.now()})
+		needsUpdate = false
 	} else {
 		console.log('Loading cached lists')
-		localTLDlist = JSON.parse(localTLDlist)
-		localBlocklist = JSON.parse(localBlocklist)
+		suffixList = JSON.parse(suffixList)
+		defaultBlocklist = JSON.parse(defaultBlocklist)
 		loadYourBlocklist()
 	}
-}
-
-function updateFlag() {
-	browser.storage.local.set({sesbLastUpdate: Date.now()})
-	needsUpdate = false
 }
 
 updateLists()

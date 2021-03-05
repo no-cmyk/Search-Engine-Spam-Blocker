@@ -26,12 +26,12 @@ function observe() {
 	})
 }
 
-function getClassToAdd(showResults) {
-	return showResults === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
+function getClassToAdd(showBlocked) {
+	return showBlocked === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
 }
 
 function findAndReplace(response, url) {
-	const classToAdd = getClassToAdd(response.showResults)
+	const classToAdd = getClassToAdd(response.showBlocked)
 	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
 		function(elem) {
 			const pos = elem.classList.contains('g') ? 0 : 1
@@ -59,19 +59,19 @@ function createButton(url, div, elem) {
 	div.appendChild(blockBtn)
 }
 
-function addButtons(elem, url, domain, addBlockButtons) {
+function addButtons(elem, url, domain, showButtons) {
 	const div = document.createElement('div')
 	div.classList.add('sesb-block-div')
-	if (addBlockButtons !== 1) {
+	if (showButtons !== 1) {
 		div.classList.add('sesb-hidden')
 	}
-	div.innerHTML = 'Block:'
+	div.innerHTML = 'Block '
 	createButton(domain, div, elem)
 	if (url !== domain && !url.startsWith('www.')) {
 		createButton(url, div, elem)
 	}
 	elem.style.removeProperty('height')
-	elem.appendChild(div)
+	elem.classList.contains('g') ? elem.prepend(div) : elem.append(div)
 }
 
 function getUrl(e, pos) {
@@ -82,9 +82,9 @@ async function removeElement(e, pos) {
 	const url = getUrl(e, pos)
 	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
 	if (response.toRemove === true) {
-		const classToAdd = getClassToAdd(response.showResults)
+		const classToAdd = getClassToAdd(response.showBlocked)
 		e.classList.add(classToAdd)
 	} else {
-		addButtons(e, url, response.domain, response.addBlockButtons)
+		addButtons(e, url, response.domain, response.showButtons)
 	}
 }

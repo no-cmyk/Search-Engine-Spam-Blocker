@@ -1,20 +1,21 @@
-let showResults = 0
-let addBlockButtons = 1
+let showBlocked = 0
+let showButtons = 0
 let enabled = 1
 document.addEventListener('click', handleClicks)
 
 function handleClicks(click) {
 	const initiator = click.srcElement.id
+	let settingsToSave
 	switch (initiator) {
 		case 'enabled':
-			const settingsToSaveEN = {showResults: showResults, addBlockButtons: addBlockButtons, enabled: (enabled ^= true)}
-			return browser.storage.local.set({sesbSettings: settingsToSaveEN})
+			settingsToSave = {showBlocked: showBlocked, showButtons: showButtons, enabled: (enabled ^= true)}
+			return browser.storage.local.set({sesbSettings: settingsToSave})
 		case 'show-results':
-			const settingsToSaveSR = {showResults: (showResults ^= true), addBlockButtons: addBlockButtons, enabled: enabled}
-			return browser.storage.local.set({sesbSettings: settingsToSaveSR})
+			settingsToSave = {showBlocked: (showBlocked ^= true), showButtons: showButtons, enabled: enabled}
+			return browser.storage.local.set({sesbSettings: settingsToSave})
 		case 'add-block-buttons':
-			const settingsToSaveAB = {showResults: showResults, addBlockButtons: (addBlockButtons ^= true), enabled: enabled}
-			return browser.storage.local.set({sesbSettings: settingsToSaveAB})
+			settingsToSave = {showBlocked: showBlocked, showButtons: (showButtons ^= true), enabled: enabled}
+			return browser.storage.local.set({sesbSettings: settingsToSave})
 		case 'update-spam-lists':
 			browser.runtime.sendMessage({action: 'update-spam-lists'})
 			break
@@ -29,12 +30,12 @@ function handleClicks(click) {
 function handleNullSettings(settings) {
 	if (settings !== undefined) {
 		enabled = settings.enabled
-		showResults = settings.showResults
-		addBlockButtons = settings.addBlockButtons
+		showBlocked = settings.showBlocked
+		showButtons = settings.showButtons
 	}
 	document.getElementById('enabled').checked = enabled
-	document.getElementById('show-results').checked = showResults
-	document.getElementById('add-block-buttons').checked = addBlockButtons
+	document.getElementById('show-results').checked = showBlocked
+	document.getElementById('add-block-buttons').checked = showButtons
 }
 
 async function loadSettings() {

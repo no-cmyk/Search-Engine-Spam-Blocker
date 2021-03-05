@@ -5,6 +5,7 @@ const textareaElem = document.getElementById('add-domains-textarea')
 const resultOkElem = document.getElementById('result-ok')
 let domainsAsList = []
 let listIndex = 0
+const interval = 2000
 addListeners()
 
 function addListeners() {
@@ -12,37 +13,6 @@ function addListeners() {
 	document.addEventListener('click', handleClicks)
 	importElem.addEventListener('change', handleFile)
 	listElem.addEventListener('scroll', scrollList)
-}
-
-function scrollList() {
-	if (listElem.scrollTop === (listElem.scrollHeight - listElem.offsetHeight) && listIndex < domainsAsList.length) {
-		const interval = (domainsAsList.length < 200) ? 12 : 1000
-		listIndex += interval
-		populateUlList(interval)
-	}
-}
-
-function handleFile(event) {
-	const fileReader = new FileReader()
-	fileReader.onload = function(event) {
-		addDomains(event.target.result)
-	}
-	fileReader.readAsText(event.target.files[0])
-	importElem.value = ''
-}
-
-function populateUlList(interval) {
-	const c = document.createDocumentFragment()
-	for (let i = listIndex; i < listIndex + interval; i++) {
-		if (i >= domainsAsList.length) {
-			break
-		}
-		const li = document.createElement('li')
-		li.id = 'domain'
-		li.innerText = domainsAsList[i]
-		c.appendChild(li)
-	}
-	listElem.appendChild(c)
 }
 
 function handleClicks(click) {
@@ -59,11 +29,11 @@ function handleClicks(click) {
 			}, 3000)
 			break
 		case 'export':
-			exportElem.parentElement.setAttribute('href', 'data:text/plaincharset=utf-8,' + encodeURIComponent(listElem.innerText))
+			exportElem.parentElement.setAttribute('href', 'data:text/plaincharset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
 			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + Date.now() + '.txt')
 			break
 		case 'add-domains-button':
-			addDomains(textareaElem.value)
+			addDomainsManually(textareaElem.value)
 			textareaElem.value = ''
 			break
 		case 'clear-blocklist':
@@ -79,15 +49,45 @@ function handleClicks(click) {
 	}
 }
 
-function addDomains(domains) {
+function handleFile(event) {
+	const fileReader = new FileReader()
+	fileReader.onload = function(event) {
+		addDomainsManually(event.target.result)
+	}
+	fileReader.readAsText(event.target.files[0])
+	importElem.value = ''
+}
+
+function scrollList() {
+	if (listElem.scrollTop === (listElem.scrollHeight - listElem.offsetHeight) && listIndex < domainsAsList.length) {
+		listIndex += interval
+		populateScrollList(interval)
+	}
+}
+
+function populateScrollList() {
+	const c = document.createDocumentFragment()
+	for (let i = listIndex; i < listIndex + interval; i++) {
+		if (i >= domainsAsList.length) {
+			break
+		}
+		const li = document.createElement('li')
+		li.id = 'domain'
+		li.innerText = domainsAsList[i]
+		c.appendChild(li)
+	}
+	listElem.appendChild(c)
+}
+
+function addDomainsManually(domains) {
 	domainsAsList = domains.split('\n').filter((e) => e.match(/.\../))
 	browser.runtime.sendMessage({action: 'update-multiple', url: domainsAsList})
-	populateUlList(100)
+	populateScrollList()
 }
 
 async function loadBlocklist() {
 	domainsAsList = await browser.runtime.sendMessage({action: 'load-your-blocklist'})
-	populateUlList(100)
+	populateScrollList()
 }
 
 function removeFromYourBlocklist(li) {

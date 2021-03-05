@@ -6,16 +6,19 @@
 .sesb-block-div {
 	color: crimson;
 	font-weight: bold;
+	font-size: 0.8em;
+	padding: 4px 0;
 }
 
-.sesb-block-button {
+.sesb-block-div button {
 	cursor: pointer;
 	background: none;
 	border: none;
 	color: darkred;
+	padding: 0 4px;
 }
 
-.sesb-block-button:hover {
+.sesb-block-div button:hover {
 	text-shadow: 1px 0px 2px lightcoral;
 }
 

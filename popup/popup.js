@@ -30,7 +30,7 @@ function handleClicks(click) {
 }
 
 function addDomains(domains) {
-	domainsAsList = domains.split('\n');
+	domainsAsList = domains.split('\n').filter(e => e);
 	browser.runtime.sendMessage({action: "update-multiple", url: domainsAsList});
 	for (var i = 0; i < domainsAsList.length; i++) {
 		li = document.createElement("li");

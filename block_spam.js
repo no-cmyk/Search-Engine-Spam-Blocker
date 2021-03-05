@@ -1,8 +1,8 @@
 const textResult = '.g';
 const imgResult = '.isv-r';
 const mo = new MutationObserver(onMutation);
-var showResults = false;
-var addBlockButtons = false;
+var showResults;
+var addBlockButtons;
 loadSettings();
 observe();
 
@@ -16,11 +16,13 @@ var done = {};
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
-			if (n.matches(textResult)) {
-				removeElement(n, 0);
-			} else if (n.matches(imgResult) && !done[n.getAttribute("data-id")]) {
-				removeElement(n, 1);
-				done[n.getAttribute("data-id")] = true;
+			if (n.tagName === 'DIV') {
+				if (n.matches(textResult)) {
+					removeElement(n, 0);
+				} else if (n.matches(imgResult) && !done[n.getAttribute("data-id")]) {
+					removeElement(n, 1);
+					done[n.getAttribute("data-id")] = true;
+				}
 			}
 		}
 	}

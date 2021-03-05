@@ -2,8 +2,7 @@ var localBlocklist;
 var localTLDlist;
 var needsUpdate = false;
 var yourBlocklist = {};
-var showResults;
-var addBlockButtons;
+var settingsSaved;
 browser.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(data, sender, response) {
@@ -17,7 +16,7 @@ async function handleMessages(data, sender, response) {
 			updateYourBlocklistMultiple(data.url);
 			break;
 		case "load-settings":
-			return Promise.resolve(returnSettings());
+			return loadSettings();
 		case "load-your-blocklist":
 			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort());
 		case "update-spam-lists":
@@ -62,24 +61,31 @@ function removeFromYourBlocklist(url) {
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)});
 }
 
-function returnSettings() {
-	var settings = {showResults: showResults, addBlockButtons: addBlockButtons};
-	return settings;
+function handleNullSettings(settings) {
+	if (!settings) {
+		settingsSaved = {showResults: false, addBlockButtons: true};
+	} else {
+		settingsSaved = JSON.parse(settings);
+	}
 }
 
 async function loadSettings() {
-	showResults = await browser.storage.local.get('sesbShowResults').then(r => r.sesbShowResults).catch(e => {return false});
-	addBlockButtons = await browser.storage.local.get('sesbAddBlockButtons').then(r => r.sesbAddBlockButtons).catch(e => {return false});
+	if (!settingsSaved) {
+		console.log("popolo");
+		var settings = await browser.storage.local.get('sesbSettings').then(r => r.sesbSettings).then(r => handleNullSettings(r));
+	}
+	console.log(settingsSaved);
+	return settingsSaved;
 }
 
 function updateAddBlockButtons() {
-	addBlockButtons = !addBlockButtons;
-	browser.storage.local.set({sesbAddBlockButtons: addBlockButtons});
+	settingsSaved.addBlockButtons = !settingsSaved.addBlockButtons;
+	browser.storage.local.set({sesbSettings: settingsSaved});
 }
 
 function updateShowResults() {
-	showResults = !showResults;
-	browser.storage.local.set({sesbShowResults: showResults});
+	settingsSaved.showResults = !settingsSaved.showResults;
+	browser.storage.local.set({sesbSettings: settingsSaved});
 }
 
 async function loadYourBlocklist() {

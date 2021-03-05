@@ -28,7 +28,17 @@ async function handleMessages(data, sender, response) {
 	}
 }
 
-function checkUrl(url) {
+function handleNullSettings(settings) {
+	if (settings !== undefined) {
+		return settings;
+	} else {
+		settingsObj = {showResults: 0, addBlockButtons: 1};
+		return settingsObj;
+	}
+}
+
+async function checkUrl(url) {
+	var settings = await browser.storage.local.get('sesbSettings').then(r => r.sesbSettings).then(r => handleNullSettings(r));
 	urlArray = url.split('.');
 	if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
 		for (var i = 0; i < urlArray.length; i++) {
@@ -42,8 +52,7 @@ function checkUrl(url) {
 		noSubUrl = urlArray.slice(0,3).join('.');
 	}
 	var toRemove = (localBlocklist[noSubUrl] !== undefined || localBlocklist[url] !== undefined);
-	var returnObj = {toRemove: toRemove, domain: noSubUrl};
-	console.log(returnObj);
+	var returnObj = {toRemove: toRemove, domain: noSubUrl, showResults: settings.showResults, addBlockButtons: settings.addBlockButtons};
 	return returnObj;
 }
 
@@ -139,7 +148,7 @@ function updateOnlineLists() {
 		setBlocklist();
 		updateFlag();
 	} else {
-		console.log("Loading cached lists...");
+		console.log("Loading cached lists");
 		localTLDlist = JSON.parse(localTLDlist);
 		localBlocklist = JSON.parse(localBlocklist);
 		loadYourBlocklist();

@@ -1,21 +1,7 @@
 const textResult = '.g';
 const imgResult = '.isv-r';
 const mo = new MutationObserver(onMutation);
-var showResults = 0;
-var addBlockButtons = 1;
-loadSettings();
 observe();
-
-function handleNullSettings(settings) {
-	if (settings !== undefined) {
-		showResults = settings.showResults;
-		addBlockButtons = settings.addBlockButtons;
-	}
-}
-
-async function loadSettings() {
-	var settings = await browser.storage.local.get('sesbSettings').then(r => r.sesbSettings).then(r => handleNullSettings(r));
-}
 
 var done = {};
 function onMutation(mutations) {
@@ -73,16 +59,16 @@ function addButtons(elem, url, domain) {
 async function removeElement(e, pos) {
 	var elem = e.getElementsByTagName('a')[pos];
 	var url = elem.href.replace(/^http.*:\/\/|\/.*$/g, '');
-	var response = await browser.runtime.sendMessage({action: "check", url: url});
+	var response = await browser.runtime.sendMessage({action: "check", url: url}).catch(e => console.log(e));
 	if (response.toRemove === true) {
-		if (showResults === 1) {
+		if (response.showResults === 1) {
 			e.style.backgroundColor = "lightcoral";
 			e.style.border = "3px solid lightcoral";
 			e.style.opacity = "0.7";
 		} else {
 			e.remove();
 		}
-	} else if (addBlockButtons === 1) {
+	} else if (response.addBlockButtons === 1) {
 		addButtons(e, url, response.domain);
 	}
 }

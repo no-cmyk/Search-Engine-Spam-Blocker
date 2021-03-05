@@ -3,15 +3,27 @@ body {
 }
 
 button {
-	font-size: 0.9em;
-	padding: 2px 6px;
+	color: white;
+	font-size: 1em;
 	cursor: pointer;
+	padding: 4px 14px;
+	border: none;
+	background-color: darkorange;
+	border-radius: 1em;
+}
+
+button:hover {
+	-webkit-box-shadow: 0 2px 3px orange;
 }
 
 .dangerous {
 	background-color: pink;
-	color: darkred;
-	border-color: lightcoral;
+	color: crimson;
+	margin-left: 4px;
+}
+
+.dangerous:hover {
+	-webkit-box-shadow: 0 2px 3px crimson;
 }
 
 ul {
@@ -20,9 +32,8 @@ ul {
 	width: 600px;
 	max-height: 200px;
 	min-height: 60px;
-	background-color: #f5f5ef;
+	background-color: floralwhite;
 	overflow: auto;
-	-webkit-box-shadow: 0 2px 3px #ceceb1 inset;
 }
 
 li {

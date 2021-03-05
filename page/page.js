@@ -3,8 +3,8 @@ const exportElem = document.getElementById('export');
 const importElem = document.getElementById('import');
 const textareaElem = document.getElementById('add-domains-textarea');
 const resultOkElem = document.getElementById('result-ok');
-var domainsAsList = [];
-var listIndex = 0;
+let domainsAsList = [];
+let listIndex = 0;
 addListeners();
 
 function addListeners() {
@@ -16,14 +16,14 @@ function addListeners() {
 
 function scrollList() {
 	if (listElem.scrollTop === (listElem.scrollHeight - listElem.offsetHeight) && listIndex < domainsAsList.length) {
-		var interval = (domainsAsList.length < 200) ? 12 : 1000;
+		const interval = (domainsAsList.length < 200) ? 12 : 1000;
 		listIndex += interval;
 		populateUlList(interval);
 	}
 }
 
 function handleFile(event) {
-	var fileReader = new FileReader();
+	const fileReader = new FileReader();
 	fileReader.onload = function(event) {
 		addDomains(event.target.result);
 	}
@@ -32,12 +32,12 @@ function handleFile(event) {
 }
 
 function populateUlList(interval) {
-	var c = document.createDocumentFragment();
-	for (var i = listIndex; i < listIndex + interval; i++) {
+	const c = document.createDocumentFragment();
+	for (let i = listIndex; i < listIndex + interval; i++) {
 		if (i >= domainsAsList.length) {
 			break;
 		}
-		var li = document.createElement('li');
+		const li = document.createElement('li');
 		li.id = 'domain';
 		li.innerText = domainsAsList[i];
 		c.appendChild(li);
@@ -46,7 +46,8 @@ function populateUlList(interval) {
 }
 
 function handleClicks(click) {
-	var initiator = click.srcElement.id;
+	const initiator = click.srcElement.id;
+			console.log(initiator)
 	switch (initiator) {
 		case 'domain':
 			removeFromYourBlocklist(click.srcElement);
@@ -54,11 +55,13 @@ function handleClicks(click) {
 		case 'update-spam-lists':
 			browser.runtime.sendMessage({action: 'update-spam-lists'});
 			resultOkElem.classList.remove('hidden');
-			setTimeout(function(){resultOkElem.classList.add('hidden');}, 3000);
+			setTimeout(function() {
+				resultOkElem.classList.add('hidden');
+			}, 3000);
 			break;
 		case 'export':
-			exportElem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(listElem.innerText));
-			exportElem.setAttribute('download', 'sesb_blocklist_' + Date.now() + '.txt');
+			exportElem.parentElement.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(listElem.innerText));
+			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + Date.now() + '.txt');
 			break;
 		case 'add-domains-button':
 			addDomains(textareaElem.value);
@@ -78,7 +81,7 @@ function handleClicks(click) {
 }
 
 function addDomains(domains) {
-	domainsAsList = domains.split('\n').filter(e => e.match(/.*\..*/));
+	domainsAsList = domains.split('\n').filter((e) => e.match(/.\../));
 	browser.runtime.sendMessage({action: 'update-multiple', url: domainsAsList});
 	populateUlList(100);
 }

@@ -2,17 +2,54 @@ body {
 	font-family: sans-serif;
 	padding: 10px;
 	width: 185px;
+	text-align: center;
 }
 
 button {
+	color: white;
 	font-size: 1em;
 	cursor: pointer;
-	padding: 4px;
-	width: 100%;
+	padding: 4px 14px;
+	border: none;
+	background-color: darkorange;
+	border-radius: 1em;
+}
+
+button:hover {
+	-webkit-box-shadow: 0 2px 3px orange;
 }
 
 h3 {
 	margin: 0;
 	color: darkorange;
 	text-align: center;
+}
+
+.settings {
+	text-align: left;
+}
+
+.switch input {
+	position: absolute;
+	opacity: 0;
+}
+
+.switch {
+	display: inline-block;
+	height: 0.8em;
+	width: 1.6em;
+	background: bisque;
+	border-radius: 1em;
+}
+
+.switch div {
+	height: 0.8em;
+	width: 0.8em;
+	border-radius: 0.8em;
+	background: black;
+}
+
+.switch input:checked + div {
+	-webkit-transform: translate3d(100%, 0, 0);
+	background: darkorange;
 }

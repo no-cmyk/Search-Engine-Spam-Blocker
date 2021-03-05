@@ -5,9 +5,17 @@
 		<link rel="stylesheet" href="popup.css"/>
 	</head>
 	<body>
-		<h3>Search Engine Spam Blocker</h3><br>
-		<label><input type="checkbox" id="show-results"> Show blocked results</label><br>
-		<label><input type="checkbox" id="add-block-buttons"> Show block buttons</label><br><br>
+		<img src="../icons/sesb_icon_48.png"/>
+		<h3>Search Engine Spam Blocker</h3>
+		<br>
+		<div class="settings">
+			<label class="switch"><input type="checkbox" id="enabled"><div></div></label> Enable blocking
+			<br>
+			<label class="switch"><input type="checkbox" id="show-results"><div></div></label> Show blocked results
+			<br>
+			<label class="switch"><input type="checkbox" id="add-block-buttons"><div></div></label> Show block buttons
+		</div>
+		<br>
 		<button id="manage-your-blocklist">Other settings</button>
 		<script src="popup.js"></script>
 	</body>

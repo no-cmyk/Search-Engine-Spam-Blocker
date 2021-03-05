@@ -9,17 +9,19 @@
 		<img src="../icons/sesb_icon_48.png"/>
 		<div class="section">
 			<div class="title">
-				<h3>Import blocklist from file:</h3>
-				<br>
+				<h3>Your blocklist</h3>
+				<h5>Click on a domain to unblock it</h5>
 			</div>
 			<div class="content">
-				<input id="import" type="file" accept=".txt">
+				<ul id="your-blocklist" title="Unblock this domain?"></ul>
+				<a href=""><button id="export">Export</button></a>
+				<button class="dangerous" id="clear-blocklist">Clear</button>
 			</div>
 		</div>
 		<div class="section">
 			<div class="title">
-				<h3>Manually add domains to block:</h3>
-				<h5>(One domain per line)</h5>
+				<h3>Manually add domains to block</h3>
+				<h5>One domain per line, no wildcards</h5>
 				<br>
 			</div>
 			<div class="content">
@@ -30,12 +32,11 @@
 		</div>
 		<div class="section">
 			<div class="title">
-				<h3>Your blocklist:</h3>
-				<h5>Click on a domain to unblock it</h5>
+				<h3>Import blocklist from file</h3>
+				<br>
 			</div>
 			<div class="content">
-				<ul id="your-blocklist" title="Unblock this domain?"></ul>
-				<a href="" id="export"><button>Export blocklist to file</button></a> <button class="dangerous" id="clear-blocklist">Clear blocklist</button>
+				<input id="import" type="file" accept=".txt">
 			</div>
 		</div>
 		<div class="section">
@@ -44,9 +45,7 @@
 				<br>
 			</div>
 			<div class="content">
-				<button id="update-spam-lists">Force update built-in blocklist</button>
-				<br><br>
-				(Note that the built-in list gets automatically updated once a week)
+				<button id="update-spam-lists">Force update</button> (Note that this list gets automatically updated once a week)
 				<br>
 				<span class="result-ok hidden" id="result-ok">OK ;)</span>
 				<br>

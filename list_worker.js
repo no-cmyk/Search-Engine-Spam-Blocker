@@ -1,5 +1,5 @@
 onmessage = function(message) {
-	Promise.resolve(true).then(values => {
+	Promise.resolve(true).then((values) => {
 		postMessage(values);
 		close();
 	});

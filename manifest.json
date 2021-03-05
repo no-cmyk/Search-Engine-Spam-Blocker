@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "Search Engine Spam Blocker",
-  "version": "1.1.1",
+  "version": "1.2",
 
   "description": "Blocks spam from search engines' results",
   "homepage_url": "https://github.com/no-cmyk/Search-Engine-Spam-Blocklist",
@@ -34,6 +34,12 @@
 
   "web_accessible_resources": [
     "list_worker.js"
-  ]
+  ],
 
+  "browser_action": {
+    "default_icon": "icons/sesb_icon.png",
+    "default_title": "Search Engine Spam Blocklist",
+    "default_popup": "popup/popup.html"
+  }
+  
 }

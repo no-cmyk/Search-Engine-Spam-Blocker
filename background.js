@@ -1,10 +1,39 @@
 var localBlocklist;
 var localTLDlist;
 var needsUpdate = false;
-browser.runtime.onMessage.addListener(isToRemove);
+var lastUpdate;
+var yourBlocklist = {};
+var showResults = false;
+var addBlockButtons = false;
+browser.runtime.onMessage.addListener(handleMessages);
 
-function isToRemove(url, sender, response) {
-	return Promise.resolve(checkUrl(url));
+async function handleMessages(data, sender, response) {
+	switch (data.action) {
+		case "check":
+			return Promise.resolve(checkUrl(data.url));
+		case "update":
+			updateYourBlocklist(data.url);
+			break;
+		case "load-settings":
+			return Promise.resolve(returnSettings());
+		case "load-your-blocklist":
+			return Promise.resolve(yourBlocklist);
+		case "update-spam-lists":
+			needsUpdate = true;
+			updateLists();
+			break;
+		case "show-results":
+			updateShowResults();
+			break;
+		case "add-block-buttons":
+			updateAddBlockButtons();
+			break;
+		case "remove":
+			removeFromYourBlocklist(data.url);
+			break;
+		default:
+			break;
+	}
 }
 
 function checkUrl(url) {
@@ -19,23 +48,65 @@ function checkUrl(url) {
 	} else {
 		noSubUrl = url;
 	}
-	return (localBlocklist[noSubUrl] || (url !== noSubUrl && localBlocklist[url]));
+	var toRemove = (localBlocklist[noSubUrl] || (url !== noSubUrl && localBlocklist[url]));
+	var returnObj = {toRemove: toRemove, domain: noSubUrl};
+	return returnObj;
 }
 
-async function updateLists() {
-	console.log("Calling worker...");
-	var updateWorker = new Worker(browser.runtime.getURL('list_worker.js'));
-	updateWorker.onerror = function(e) {console.error(e)};
-	updateWorker.onmessage = workerOnMessage;
-	var lastUpdate = await browser.storage.local.get('sesbLastUpdate').then(r => r.sesbLastUpdate);
+function removeFromYourBlocklist(url) {
+	delete localBlocklist[url];
+	delete yourBlocklist[url];
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)});
+}
+
+function returnSettings() {
+	var settings = {showResults: showResults, addBlockButtons: addBlockButtons, yourBlocklist: yourBlocklist};
+	return settings;
+}
+
+async function loadSettings() {
+	showResultsSaved = await browser.storage.local.get('sesbShowResults').then(r => r.sesbShowResults).catch(e => {return false});
+	addBlockButtonsSaved = await browser.storage.local.get('sesbAddBlockButtons').then(r => r.sesbAddBlockButtons).catch(e => {return false});
+}
+
+function updateAddBlockButtons() {
+	addBlockButtons = !addBlockButtons;
+	browser.storage.local.set({sesbAddBlockButtons: addBlockButtons});
+}
+
+function updateShowResults() {
+	showResults = !showResults;
+	browser.storage.local.set({sesbShowResults: showResults});
+}
+
+async function loadYourBlocklist() {
+	var yourBlocklistJson = await browser.storage.local.get('sesbYourBlocklist').then(r => r.sesbYourBlocklist);
+	if (yourBlocklistJson) {
+		yourBlocklist = JSON.parse(yourBlocklistJson);
+		localBlocklist = Object.assign(localBlocklist, yourBlocklist);
+	}
+}
+
+function updateYourBlocklist(url) {
+	urlObj = {};
+	urlObj[url] = true;
+	localBlocklist = Object.assign(localBlocklist, urlObj);
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))});
+}
+
+async function loadUpdateSettings() {
+	lastUpdate = await browser.storage.local.get('sesbLastUpdate').then(r => r.sesbLastUpdate);
 	localTLDlist = await browser.storage.local.get('sesbTLDlist').then(r => r.sesbTLDlist);
 	localBlocklist = await browser.storage.local.get('sesbBlocklist').then(r => r.sesbBlocklist);
 	if (!lastUpdate || !localTLDlist || !localBlocklist || (Date.now() - lastUpdate > 604800)) {
-		console.log("Updating lists...");
 		needsUpdate = true;
-	} else {
-		console.log("Loading cached lists...");
 	}
+}
+
+async function updateLists() {
+	var updateWorker = new Worker(browser.runtime.getURL('list_worker.js'));
+	updateWorker.onmessage = workerOnMessage;
+	var settings = await loadUpdateSettings();
 	updateWorker.postMessage(["ciao"]);
 }
 
@@ -53,6 +124,7 @@ function retainBlocklist(text) {
 	for (var i = 0; i < text.length; i++) {
 		localBlocklist[text[i]] = true;
 	}
+	loadYourBlocklist();
 	browser.storage.local.set({sesbBlocklist: JSON.stringify(localBlocklist)});
 	console.log("Blocklist OK");
 }
@@ -60,30 +132,37 @@ function retainBlocklist(text) {
 function setBlocklist() {
 	fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
 		.then(response => response.text())
-		.then(text => retainBlocklist(text.split("\n")))
-		.catch(error => console.error('Error (blocklist): ', error));
+		.then(text => retainBlocklist(text.split("\n")));
 }
 
 function setSuffixList() {
 	fetch('https://data.iana.org/TLD/tlds-alpha-by-domain.txt')
 		.then(response => response.text())
-		.then(text => retainSuffixList(text.toLowerCase().split("\n").slice(1)))
-		.catch(error => console.error('Error (TLD list): ', error));
+		.then(text => retainSuffixList(text.toLowerCase().split("\n").slice(1)));
 }
 
-function workerOnMessage(message) {
+function updateOnlineLists() {
 	if (needsUpdate) {
-		console.log("Worker updating...");
+		console.log("Updating lists...");
 		setSuffixList();
 		setBlocklist();
-		browser.storage.local.set({sesbLastUpdate: Date.now()});
-		needsUpdate = false;
+		updateFlag();
 	} else {
-		console.log("Worker loading...");
+		console.log("Loading cached lists...");
 		localTLDlist = JSON.parse(localTLDlist);
 		localBlocklist = JSON.parse(localBlocklist);
-		console.log("Lists loaded");
+		loadYourBlocklist();
 	}
 }
 
+function updateFlag() {
+	browser.storage.local.set({sesbLastUpdate: Date.now()});
+	needsUpdate = false;
+}
+
+function workerOnMessage(message) {
+	updateOnlineLists();
+}
+
+loadSettings();
 updateLists();

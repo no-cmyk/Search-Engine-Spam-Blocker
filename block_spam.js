@@ -1,16 +1,27 @@
 const textResult = '.g';
 const imgResult = '.isv-r';
 const mo = new MutationObserver(onMutation);
-onMutation([{addedNodes:[document.documentElement]}]).then(observe());
+var showResults = false;
+var addBlockButtons = false;
+loadSettings();
+observe();
 
-async function onMutation(mutations) {
+async function loadSettings() {
+	var settings = await browser.runtime.sendMessage({action: "load-settings"});
+	showResults = settings.showResults;
+	addBlockButtons = settings.addBlockButtons;
+}
+
+var done = {};
+function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
-			if (n.tagName) {
+			if (n.tagName === 'DIV') {
 				if (n.matches(textResult)) {
 					removeElement(n, 0);
-				} else if (n.matches(imgResult)) {
+				} else if (n.matches(imgResult) && !done[n.getAttribute("data-id")]) {
 					removeElement(n, 1);
+					done[n.getAttribute("data-id")] = true;
 				}
 			}
 		}
@@ -24,10 +35,40 @@ function observe() {
 	});
 }
 
+function updateYourBlocklist(url) {
+	browser.runtime.sendMessage({action: "update", url: url});
+}
+
+function addButtons(elem, url, domain) {
+	elem.style.display = "inline-table";
+	var div = document.createElement("div");
+	div.innerHTML = "<b>Block: </b>";
+	var blockBtn = document.createElement("button");
+	blockBtn.innerText = "Domain";
+	blockBtn.title = domain;
+	blockBtn.addEventListener("mouseup", function(){updateYourBlocklist(domain);});
+	var blockBtnSub = document.createElement("button");
+	blockBtnSub.innerText = "Subdomain";
+	blockBtnSub.title = url;
+	blockBtnSub.addEventListener("mouseup", function(){updateYourBlocklist(url);});
+	div.appendChild(blockBtn);
+	div.appendChild(blockBtnSub);
+	elem.appendChild(div);
+}
+
 async function removeElement(e, pos) {
-	var url = e.getElementsByTagName('a')[pos].href.replace(/^http.*:\/\/|\/.*$/g, '');
-	var toRemove = await browser.runtime.sendMessage(url);
-	if (toRemove === true) {
-		e.remove();
+	var elem = e.getElementsByTagName('a')[pos];
+	var url = elem.href.replace(/^http.*:\/\/|\/.*$/g, '');
+	var response = await browser.runtime.sendMessage({action: "check", url: url});
+	if (response.toRemove === true) {
+		if (showResults === true) {
+			e.style.backgroundColor = "lightcoral";
+			e.style.border = "3px solid lightcoral";
+			e.style.opacity = "0.7";
+		} else {
+			e.remove();
+		}
+	} else if (addBlockButtons === true) {
+		addButtons(e, url, response.domain);
 	}
 }

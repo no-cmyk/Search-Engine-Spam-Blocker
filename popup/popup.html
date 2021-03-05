@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="popup.css"/>
+	</head>
+	<body>
+		<h2>Search Engine<br>Spam Blocker</h2>
+		<hr>
+		<h3>Settings</h3>
+		<label for="show-results"> Show removed results
+			<input type="checkbox" name="show-results">
+		</label>
+		<label for="add-block-buttons"> Add block buttons
+			<input type="checkbox" name="add-block-buttons">
+		</label>
+		<button name="update-spam-lists">Update spam lists</button>
+		<div id="your-blocklist-div">
+			<hr>
+			<h3>Your blocklist</h3>
+			<ul id="your-blocklist" title="Unblock this domain?"></ul>
+		</div>
+		<script src="popup.js"></script>
+	</body>
+</html>

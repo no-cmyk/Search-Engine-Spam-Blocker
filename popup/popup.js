@@ -1,20 +1,20 @@
 const yourBlocklistElem = document.getElementById("your-blocklist");
-const showResultsElem = document.getElementById('show-results');
-const addBlockButtonsElem = document.getElementById('add-block-buttons');
 const exportElem = document.getElementById('export');
 const addDomainsButtonElem = document.getElementById('add-domains-button');
 const addDomainsTextareaElem = document.getElementById('add-domains-textarea');
+var showResults = 0;
+var addBlockButtons = 1;
 document.addEventListener("mouseup", handleClicks);
 
 function handleClicks(click) {
-	var initiator = click.originalTarget.id;
+	var initiator = click.srcElement.id;
 	switch (initiator) {
 		case "show-results":
-			browser.runtime.sendMessage({action: "show-results"});
-			break;
+			var settingsToSave = {showResults: (showResults ^= true), addBlockButtons: addBlockButtons};
+			return browser.storage.local.set({sesbSettings: settingsToSave});
 		case "add-block-buttons":
-			browser.runtime.sendMessage({action: "add-block-buttons"});
-			break;
+			var settingsToSave = {showResults: showResults, addBlockButtons: (addBlockButtons ^= true)};
+			return browser.storage.local.set({sesbSettings: settingsToSave});
 		case "update-spam-lists":
 			browser.runtime.sendMessage({action: "update-spam-lists"});
 		case "export":
@@ -41,10 +41,17 @@ function addDomains(domains) {
 	addDomainsTextareaElem.value = '';
 }
 
+function handleNullSettings(settings) {
+	if (settings !== undefined) {
+		showResults = settings.showResults;
+		addBlockButtons = settings.addBlockButtons;
+		document.getElementById('show-results').checked = showResults;
+		document.getElementById('add-block-buttons').checked = addBlockButtons;
+	}
+}
+
 async function loadSettings() {
-	var settings = await browser.runtime.sendMessage({action: "load-settings"});
-	showResultsElem.checked = settings.showResults;
-	addBlockButtonsElem.checked = settings.addBlockButtons;
+	var settings = await browser.storage.local.get('sesbSettings').then(r => r.sesbSettings).then(r => handleNullSettings(r));
 	var yourBlocklist = await browser.runtime.sendMessage({action: "load-your-blocklist"});
 	for (var i = 0; i < yourBlocklist.length; i++) {
 		li = document.createElement("li");

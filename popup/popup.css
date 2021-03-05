@@ -15,10 +15,6 @@ input, label {
 	float: left;
 }
 
-label {
-	padding-top: 8px;
-}
-
 button {
 	font-size: 1em;
 	padding: 4px;

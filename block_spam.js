@@ -1,15 +1,20 @@
 const textResult = '.g';
 const imgResult = '.isv-r';
 const mo = new MutationObserver(onMutation);
-var showResults;
-var addBlockButtons;
+var showResults = 0;
+var addBlockButtons = 1;
 loadSettings();
 observe();
 
+function handleNullSettings(settings) {
+	if (settings !== undefined) {
+		showResults = settings.showResults;
+		addBlockButtons = settings.addBlockButtons;
+	}
+}
+
 async function loadSettings() {
-	var settings = await browser.runtime.sendMessage({action: "load-settings"});
-	showResults = settings.showResults;
-	addBlockButtons = settings.addBlockButtons;
+	var settings = await browser.storage.local.get('sesbSettings').then(r => r.sesbSettings).then(r => handleNullSettings(r));
 }
 
 var done = {};
@@ -70,14 +75,14 @@ async function removeElement(e, pos) {
 	var url = elem.href.replace(/^http.*:\/\/|\/.*$/g, '');
 	var response = await browser.runtime.sendMessage({action: "check", url: url});
 	if (response.toRemove === true) {
-		if (showResults === true) {
+		if (showResults === 1) {
 			e.style.backgroundColor = "lightcoral";
 			e.style.border = "3px solid lightcoral";
 			e.style.opacity = "0.7";
 		} else {
 			e.remove();
 		}
-	} else if (addBlockButtons === true) {
+	} else if (addBlockButtons === 1) {
 		addButtons(e, url, response.domain);
 	}
 }

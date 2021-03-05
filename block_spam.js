@@ -11,7 +11,6 @@ ee.showprefix(),"font-style: italic;","font-style: normal;","font-weight: bold;"
 ee.showprefix()+"%c), but a usable prefix is %cstrongly recommended%c to organize keys!","font-weight: bold;","font-style: normal;","text-decoration: underline;","text-decoration: none;"),i&&-1!==i.indexOf("/q")||console.log("localDataStorage instantiated. The "+(!0===r?"random":"specified")+" prefix (%c"+
 ee.showprefix()+"%c) adds "+re+" to every key name (stored using "+te+").","font-weight: bold;","font-style: normal;"),i&&-1!==i.indexOf("/w")){for(var t=0,n=localStorage.length;t<n;t++)if(-1!==localStorage.key(t).indexOf(S+y)){e=!0;break}e&&console.warn("%cAttention! %cKeys with this prefix already exist in localStorage for this domain!","color: rgb(230,0,0); font-weight: bold;","color: rgb(230,0,0);")}}else console.warn("%cError! Cannot access localStorage! %cBailing out...","color: rgb(230,0,0); font-weight: bold;","color: rgb(230,0,0);")}(),ee}(e,r)};
 
-localConfigs = localDataStorage('C');
 localBlocklist = localDataStorage('B');
 localTLDlist = localDataStorage('T');
 const textResult = '.g';
@@ -67,7 +66,7 @@ function saveBlocklist(text) {
 		localBlocklist.set(text[i], true);
 	}
 	console.log("Blocklist OK");
-	localConfigs.set('isUpdated', true);
+	browser.storage.local.set({lastUpdate: Date.now()});
 	document.getElementById("sesbUpdateOverlay").remove();
 }
 
@@ -103,37 +102,12 @@ function addOverlay() {
 	document.body.appendChild(overlay);
 }
 
-function updateLists() {
-	var isUpdated = localConfigs.haskey('isUpdated');
-	console.log("Is updated? " + isUpdated);
-	if (!isUpdated) {
+async function updateLists() {
+	var lastUpdate = await browser.storage.local.get('lastUpdate').then(r => r.lastUpdate);
+	console.log("Last update: " + lastUpdate);
+	if (!lastUpdate || (Date.now() - lastUpdate > 604800)) {
 		addOverlay();
 		setSuffixList();
 		setBlocklist();
 	}
 }
-
-/*
-This extension incorporates:
-	localDataStorage 1.3.0:
-	This version is Copyright (c) 2017, 2020 W. "Mac" McMeans
-	All rights reserved.
-	Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-	1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-	3. Neither the name of copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	This version of localDataStorage incorporates SMAZ (a simple string compression library written in C)
-	by Salvatore Sanfilippo (https://github.com/antirez/smaz), under a BSD license. The derivative work
-	included in this project (a javascript port of C code) was written by personalcomputer
-	(https://github.com/personalcomputer/smaz.js), under the same BSD license.
-	SMAZ:
-	Original work Copyright (c) 2006-2009 Salvatore Sanfilippo, BSD License.
-	Derivative work Copyright (c) 2013 John Miller. BSD License
-	All rights reserved.
-	Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of Smaz nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/

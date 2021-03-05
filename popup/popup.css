@@ -1,8 +1,10 @@
 body {
-	width: 250px;
-	font-family: arial,sans-serif;
+	display: block;
+	font-family: Arial, sans-serif;
 	padding: 4px;
 	color: #1f1f14;
+	width: 250px;
+	overflow: hidden;
 }
 
 .hidden {
@@ -24,15 +26,17 @@ button {
 	padding-right: 4px;
 	cursor: pointer;
 	margin-top: 8px;
+	width: 250px;
 }
 
 ul {
+	width: 245px;
 	padding: 2px;
 	list-style-type: none;
 	max-height: 200px;
+	min-height: 20px;
 	overflow: auto;
 	background-color: #f5f5ef;
-	margin-bottom: 0;
 	margin-top: 8px;
 	-webkit-box-shadow: 0 2px 3px #ceceb1 inset;
 }
@@ -46,19 +50,27 @@ li {
 li:hover {
 	color: red;
 	text-decoration: line-through;
-}
-
-h2 {
-	margin: 3px;
-	text-align: center;
+	background-color: pink;
 }
 
 h3 {
 	margin: 0;
+	font-size: 1em;
 }
 
 hr {
 	margin-top: 14px;
 	border: 0;
 	border-top: 1px dotted #ceceb1;
+}
+
+textarea {
+	width: 245px;
+	height: 75px;
+	resize: none;
+	font-family: Arial, sans-serif;
+}
+
+#add-domains-button {
+	margin-top: -10px;
 }

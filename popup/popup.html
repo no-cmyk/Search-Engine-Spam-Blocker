@@ -5,21 +5,24 @@
 		<link rel="stylesheet" href="popup.css"/>
 	</head>
 	<body>
-		<h2>Search Engine<br>Spam Blocker</h2>
+		<h3 align="center">Search Engine Spam Blocker</h3>
 		<hr>
 		<h3>Settings</h3>
 		<label for="show-results"> Show removed results
-			<input type="checkbox" name="show-results">
+			<input type="checkbox" id="show-results">
 		</label>
+		<br>
 		<label for="add-block-buttons"> Add block buttons
-			<input type="checkbox" name="add-block-buttons">
+			<input type="checkbox" id="add-block-buttons">
 		</label>
-		<button name="update-spam-lists">Update spam lists</button>
-		<div id="your-blocklist-div">
-			<hr>
-			<h3>Your blocklist</h3>
-			<ul id="your-blocklist" title="Unblock this domain?"></ul>
-		</div>
+		<br>
+		<button id="update-spam-lists">Update spam lists</button>
+		<hr>
+		<h3>Your blocklist</h3>
+		<ul id="your-blocklist" title="Unblock this domain?"></ul>
+		<p><a href="" id="export">Export blocklist to file</a></p>
+		<textarea id="add-domains-textarea" placeholder="Write domains to add (one per line)"></textarea>
+		<p><button id="add-domains-button">Add domains</button></p>
 		<script src="popup.js"></script>
 	</body>
 </html>

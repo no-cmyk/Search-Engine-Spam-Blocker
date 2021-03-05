@@ -1,10 +1,9 @@
 var localBlocklist;
 var localTLDlist;
 var needsUpdate = false;
-var lastUpdate;
 var yourBlocklist = {};
-var showResults = false;
-var addBlockButtons = false;
+var showResults;
+var addBlockButtons;
 browser.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(data, sender, response) {
@@ -14,10 +13,13 @@ async function handleMessages(data, sender, response) {
 		case "update":
 			updateYourBlocklist(data.url);
 			break;
+		case "update-multiple":
+			updateYourBlocklistMultiple(data.url);
+			break;
 		case "load-settings":
 			return Promise.resolve(returnSettings());
 		case "load-your-blocklist":
-			return Promise.resolve(yourBlocklist);
+			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort());
 		case "update-spam-lists":
 			needsUpdate = true;
 			updateLists();
@@ -37,18 +39,19 @@ async function handleMessages(data, sender, response) {
 }
 
 function checkUrl(url) {
+	urlArray = url.split('.');
 	if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
-		urlArray = url.split('.');
-		for (i = urlArray.length-1; i >= 0; i--) {
-			if (!localTLDlist[urlArray[i]]) {
-				noSubUrl = urlArray.slice(i, urlArray.length).join('.');
+		for (var i = 0; i < urlArray.length; i++) {
+			var toCheck = urlArray.slice(i, urlArray.length).join('.');
+			if (localTLDlist[toCheck]) {
+				noSubUrl = urlArray.slice(i-1, urlArray.length).join('.');
 				break;
 			}
 		}
 	} else {
-		noSubUrl = url;
+		noSubUrl = urlArray.slice(0,3).join('.');
 	}
-	var toRemove = (localBlocklist[noSubUrl] || (url !== noSubUrl && localBlocklist[url]));
+	var toRemove = (localBlocklist[noSubUrl] || localBlocklist[url]);
 	var returnObj = {toRemove: toRemove, domain: noSubUrl};
 	return returnObj;
 }
@@ -60,13 +63,13 @@ function removeFromYourBlocklist(url) {
 }
 
 function returnSettings() {
-	var settings = {showResults: showResults, addBlockButtons: addBlockButtons, yourBlocklist: yourBlocklist};
+	var settings = {showResults: showResults, addBlockButtons: addBlockButtons};
 	return settings;
 }
 
 async function loadSettings() {
-	showResultsSaved = await browser.storage.local.get('sesbShowResults').then(r => r.sesbShowResults).catch(e => {return false});
-	addBlockButtonsSaved = await browser.storage.local.get('sesbAddBlockButtons').then(r => r.sesbAddBlockButtons).catch(e => {return false});
+	showResults = await browser.storage.local.get('sesbShowResults').then(r => r.sesbShowResults).catch(e => {return false});
+	addBlockButtons = await browser.storage.local.get('sesbAddBlockButtons').then(r => r.sesbAddBlockButtons).catch(e => {return false});
 }
 
 function updateAddBlockButtons() {
@@ -94,8 +97,23 @@ function updateYourBlocklist(url) {
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))});
 }
 
+function yourBlocklistBulkUpdate(domains) {
+	urlObj = {};
+	for (var i = 0; i < domains.length; i++) {
+		urlObj[domains[i]] = true;
+	}
+	localBlocklist = Object.assign(localBlocklist, urlObj);
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))});
+}
+
+function updateYourBlocklistMultiple(domains) {
+	var updateWorker = new Worker(browser.runtime.getURL('list_worker.js'));
+	updateWorker.onmessage = function() {yourBlocklistBulkUpdate(domains)};
+	updateWorker.postMessage(["ciao"]);
+}
+
 async function loadUpdateSettings() {
-	lastUpdate = await browser.storage.local.get('sesbLastUpdate').then(r => r.sesbLastUpdate);
+	var lastUpdate = await browser.storage.local.get('sesbLastUpdate').then(r => r.sesbLastUpdate);
 	localTLDlist = await browser.storage.local.get('sesbTLDlist').then(r => r.sesbTLDlist);
 	localBlocklist = await browser.storage.local.get('sesbBlocklist').then(r => r.sesbBlocklist);
 	if (!lastUpdate || !localTLDlist || !localBlocklist || (Date.now() - lastUpdate > 604800)) {
@@ -113,7 +131,9 @@ async function updateLists() {
 function retainSuffixList(text) {
 	localTLDlist = {};
 	for (var i = 0; i < text.length; i++) {
-		localTLDlist[text[i]] = true;
+		if (text[i] !== "" && (text[i])[0] !== "/") {
+			localTLDlist[text[i]] = true;
+		}
 	}
 	browser.storage.local.set({sesbTLDlist: JSON.stringify(localTLDlist)});
 	console.log("TLD list OK");
@@ -136,9 +156,9 @@ function setBlocklist() {
 }
 
 function setSuffixList() {
-	fetch('https://data.iana.org/TLD/tlds-alpha-by-domain.txt')
+	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
 		.then(response => response.text())
-		.then(text => retainSuffixList(text.toLowerCase().split("\n").slice(1)));
+		.then(text => retainSuffixList(text.split("\n")));
 }
 
 function updateOnlineLists() {

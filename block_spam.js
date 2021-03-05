@@ -16,13 +16,11 @@ var done = {};
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
-			if (n.tagName === 'DIV') {
-				if (n.matches(textResult)) {
-					removeElement(n, 0);
-				} else if (n.matches(imgResult) && !done[n.getAttribute("data-id")]) {
-					removeElement(n, 1);
-					done[n.getAttribute("data-id")] = true;
-				}
+			if (n.matches(textResult)) {
+				removeElement(n, 0);
+			} else if (n.matches(imgResult) && !done[n.getAttribute("data-id")]) {
+				removeElement(n, 1);
+				done[n.getAttribute("data-id")] = true;
 			}
 		}
 	}
@@ -35,8 +33,15 @@ function observe() {
 	});
 }
 
-function updateYourBlocklist(url) {
+function updateYourBlocklist(url, e) {
 	browser.runtime.sendMessage({action: "update", url: url});
+	if (showResults === true) {
+		e.style.backgroundColor = "lightcoral";
+		e.style.border = "3px solid lightcoral";
+		e.style.opacity = "0.7";
+	} else {
+		e.remove();
+	}
 }
 
 function addButtons(elem, url, domain) {
@@ -46,13 +51,15 @@ function addButtons(elem, url, domain) {
 	var blockBtn = document.createElement("button");
 	blockBtn.innerText = "Domain";
 	blockBtn.title = domain;
-	blockBtn.addEventListener("mouseup", function(){updateYourBlocklist(domain);});
-	var blockBtnSub = document.createElement("button");
-	blockBtnSub.innerText = "Subdomain";
-	blockBtnSub.title = url;
-	blockBtnSub.addEventListener("mouseup", function(){updateYourBlocklist(url);});
+	blockBtn.addEventListener("mouseup", function(){updateYourBlocklist(domain, elem);});
 	div.appendChild(blockBtn);
-	div.appendChild(blockBtnSub);
+	if (url !== domain) {
+		var blockBtnSub = document.createElement("button");
+		blockBtnSub.innerText = "Subdomain";
+		blockBtnSub.title = url;
+		blockBtnSub.addEventListener("mouseup", function(){updateYourBlocklist(url, elem);});
+		div.appendChild(blockBtnSub);
+	}
 	elem.appendChild(div);
 }
 

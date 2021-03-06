@@ -41,16 +41,27 @@
 		</div>
 		<div class="section">
 			<div class="title">
+				<h3>Whitelist domains</h3>
+				<h5>One domain per line, no wildcards</h5>
+				<br>
+			</div>
+			<div class="content">
+				<textarea id="whitelist-domains-textarea"></textarea>
+				<br>
+				<button id="whitelist-domains-button">Whitelist domains</button>
+				<ul id="whitelist" title="Remove from whitelist?"></ul>
+			</div>
+		</div>	
+		<div class="section">
+			<div class="title">
 				<h3>Built-in blocklist:</h3>
 				<br>
 			</div>
 			<div class="content">
+				<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocklist">Built-in blocklist page on GitHub</a>
+				&nbsp;
 				<button id="update-spam-lists">Force update</button>
 				<span class="result-ok hidden" id="result-ok">OK ;)</span>
-				<br><br>
-				(Note that this list gets automatically updated once a week)
-				<br><br>
-				<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocklist">Built-in blocklist page on GitHub</a>
 			</div>
 		</div>
 		<script src="options.js"></script>

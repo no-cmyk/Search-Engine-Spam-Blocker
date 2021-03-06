@@ -3,7 +3,10 @@ const exportElem = document.getElementById('export')
 const importElem = document.getElementById('import')
 const textareaElem = document.getElementById('add-domains-textarea')
 const resultOkElem = document.getElementById('result-ok')
+const textareaWhitelistElem = document.getElementById('whitelist-domains-textarea')
+const whitelistElem = document.getElementById('whitelist')
 let domainsAsList = []
+let whitelistDomainsAsList = []
 let listIndex = 0
 const interval = 2000
 addListeners()
@@ -20,6 +23,9 @@ function handleClicks(click) {
 		case 'domain':
 			removeFromYourBlocklist(click.srcElement)
 			break
+		case 'domain-whitelist':
+			removeFromWhitelist(click.srcElement)
+			break
 		case 'update-spam-lists':
 			browser.runtime.sendMessage({action: 'update-spam-lists'})
 			resultOkElem.classList.remove('hidden')
@@ -32,7 +38,7 @@ function handleClicks(click) {
 			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + Date.now() + '.txt')
 			break
 		case 'add-domains-button':
-			addDomainsManually(textareaElem.value)
+			addDomains(textareaElem.value)
 			textareaElem.value = ''
 			break
 		case 'clear-blocklist':
@@ -43,6 +49,10 @@ function handleClicks(click) {
 				listIndex = 0
 			}
 			break
+		case 'whitelist-domains-button':
+			whitelistDomains(textareaWhitelistElem.value)
+			textareaWhitelistElem.value = ''
+			break
 		default:
 			break
 	}
@@ -51,7 +61,7 @@ function handleClicks(click) {
 function handleFile(event) {
 	const fileReader = new FileReader()
 	fileReader.onload = function(event) {
-		addDomainsManually(event.target.result)
+		addDomains(event.target.result)
 	}
 	fileReader.readAsText(event.target.files[0])
 	importElem.value = ''
@@ -62,6 +72,17 @@ function scrollList() {
 		listIndex += interval
 		populateScrollList(interval)
 	}
+}
+
+function populateWhitelist() {
+	const c = document.createDocumentFragment()
+	for (let i = 0; i < whitelistDomainsAsList.length; i++) {
+		const li = document.createElement('li')
+		li.id = 'domain-whitelist'
+		li.innerText = whitelistDomainsAsList[i]
+		c.appendChild(li)
+	}
+	whitelistElem.appendChild(c)
 }
 
 function populateScrollList() {
@@ -78,15 +99,23 @@ function populateScrollList() {
 	listElem.appendChild(c)
 }
 
-function addDomainsManually(domains) {
-	domainsAsList = domains.split('\n').filter((e) => e.match(/.\../))
+function addDomains(domains) {
+	domainsAsList = domains.split('\n')
 	browser.runtime.sendMessage({action: 'update-multiple', url: domainsAsList})
 	populateScrollList()
 }
 
+function whitelistDomains(domains) {
+	whitelistDomainsAsList = domains.split('\n')
+	browser.runtime.sendMessage({action: 'whitelist-multiple', url: whitelistDomainsAsList})
+	populateWhitelist()
+}
+
 async function loadBlocklist() {
 	domainsAsList = await browser.runtime.sendMessage({action: 'load-your-blocklist'})
+	whitelistDomainsAsList = await browser.runtime.sendMessage({action: 'load-whitelist'})
 	populateScrollList()
+	populateWhitelist()
 }
 
 function removeFromYourBlocklist(li) {
@@ -95,4 +124,9 @@ function removeFromYourBlocklist(li) {
 	if (listElem.childElementCount === 0) {
 		listIndex = 0
 	}
+}
+
+function removeFromWhitelist(li) {
+	browser.runtime.sendMessage({action: 'remove-from-whitelist', url: li.innerText})
+	li.remove()
 }

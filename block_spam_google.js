@@ -30,7 +30,7 @@ function getClassToAdd(showBlocked) {
 	return showBlocked === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
 }
 
-function findAndReplace(response, url) {
+function findAndBlock(response, url) {
 	const classToAdd = getClassToAdd(response.showBlocked)
 	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
 		function(elem) {
@@ -39,16 +39,39 @@ function findAndReplace(response, url) {
 			if (elemUrl.endsWith(url)) {
 				elem.getElementsByClassName('sesb-block-div')[0].classList.add('sesb-hidden')
 				elem.classList.add(classToAdd)
+				if (response.showBlocked) {
+					elem.getElementsByClassName('sesb-unblock-div')[0].classList.remove('sesb-hidden')
+				}
 			}
 		}
 	)
 }
 
-async function updateYourBlocklist(url) {
-	const response = await browser.runtime.sendMessage({action: 'update', url: url}).then((resp) => findAndReplace(resp, url))
+function findAndUnblock(response, url) {
+	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+		function(elem) {
+			const pos = elem.classList.contains('g') ? 0 : 1
+			const elemUrl = getUrl(elem, pos)
+			if (elemUrl.endsWith(url)) {
+				elem.classList.remove('sesb-hidden', 'sesb-blocked-show')
+				if (response.showBlocked) {
+					elem.getElementsByClassName('sesb-block-div')[0].classList.remove('sesb-hidden')
+				}
+				elem.getElementsByClassName('sesb-unblock-div')[0].classList.add('sesb-hidden')
+			}
+		}
+	)
 }
 
-function createButton(url, div, elem) {
+function updateYourBlocklist(url) {
+	browser.runtime.sendMessage({action: 'update', url: url}).then((resp) => findAndBlock(resp, url))
+}
+
+function unblock(url, isSub) {
+	browser.runtime.sendMessage({action: 'unblock', url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
+}
+
+function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Block ' + url + '?'
@@ -56,18 +79,44 @@ function createButton(url, div, elem) {
 	div.appendChild(button)
 }
 
-function addButtons(elem, url, domain, showButtons) {
+function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) {
 	const div = document.createElement('div')
 	div.classList.add('sesb-block-div')
-	if (showButtons !== 1) {
+	if (showButtons !== 1 || toRemove === true) {
 		div.classList.add('sesb-hidden')
 	}
-	div.innerHTML = 'Block '
-	createButton(domain, div, elem)
-	if (url !== domain && !url.startsWith('www.')) {
-		createButton(url, div, elem)
+	if (showBlocked === 1) {
+		addUnblockButtons(elem, url, domain, showBlocked, toRemove)
 	}
-	elem.style.removeProperty('height')
+	div.innerHTML = 'Block '
+	createBlockButton(domain, div, elem)
+	if (url !== domain && !url.startsWith('www.')) {
+		createBlockButton(url, div, elem)
+	}
+	elem.classList.add('sesb-fix-height')
+	elem.classList.contains('g') ? elem.prepend(div) : elem.append(div)
+}
+
+function createUnblockButton(url, div, elem, isSub) {
+	const button = document.createElement('button')
+	button.innerText = url
+	button.title = 'Unblock ' + url + '?'
+	button.addEventListener('click', function(){unblock(url, isSub)})
+	div.appendChild(button)
+}
+
+function addUnblockButtons(elem, url, domain, showButtons, toRemove) {
+	const div = document.createElement('div')
+	div.classList.add('sesb-unblock-div')
+	if (showButtons !== 1 || toRemove !== true) {
+		div.classList.add('sesb-hidden')
+	}
+	div.innerHTML = 'Unblock '
+	createUnblockButton(domain, div, elem, false)
+	if (url !== domain && !url.startsWith('www.')) {
+		createUnblockButton(url, div, elem, true)
+	}
+	elem.classList.add('sesb-fix-height')
 	elem.classList.contains('g') ? elem.prepend(div) : elem.append(div)
 }
 
@@ -77,11 +126,13 @@ function getUrl(e, pos) {
 
 async function removeElement(e, pos) {
 	const url = getUrl(e, pos)
+	if (url === '' || url === undefined) {
+		return
+	}
 	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
+	addBlockButtons(e, url, response.domain, response.showButtons, response.showBlocked, response.toRemove)
 	if (response.toRemove === true) {
 		const classToAdd = getClassToAdd(response.showBlocked)
 		e.classList.add(classToAdd)
-	} else {
-		addButtons(e, url, response.domain, response.showButtons)
 	}
 }

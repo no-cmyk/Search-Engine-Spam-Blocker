@@ -29,9 +29,7 @@ function handleClicks(click) {
 		case 'update-spam-lists':
 			browser.runtime.sendMessage({action: 'update-spam-lists'})
 			resultOkElem.classList.remove('hidden')
-			setTimeout(function() {
-				resultOkElem.classList.add('hidden')
-			}, 3000)
+			setTimeout(function(){resultOkElem.classList.add('hidden')}, 3000)
 			break
 		case 'export':
 			exportElem.parentElement.setAttribute('href', 'data:text/plaincharset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
@@ -102,13 +100,13 @@ function populateScrollList() {
 function addDomains(domains) {
 	domainsAsList = domains.split('\n')
 	browser.runtime.sendMessage({action: 'update-multiple', url: domainsAsList})
-	populateScrollList()
+	setTimeout(function(){loadBlocklist()}, 1000)
 }
 
 function whitelistDomains(domains) {
 	whitelistDomainsAsList = domains.split('\n')
 	browser.runtime.sendMessage({action: 'whitelist-multiple', url: whitelistDomainsAsList})
-	populateWhitelist()
+	setTimeout(function(){loadBlocklist()}, 1000)
 }
 
 async function loadBlocklist() {

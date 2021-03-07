@@ -97,21 +97,19 @@ function clearBlocklist() {
 }
 
 function updateYourBlocklist(url) {
-	if (defaultBlocklist[url] === undefined) {
+	if (defaultBlocklist[url] === undefined && whitelist[url] === undefined) {
 		yourBlocklist[url] = true
 		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 	}
-	removeFromWhitelist(url)
 	return {showBlocked: settings.showBlocked}
 }
 
 function updateMultiple(domains) {
 	const sanitizedDomains = sanitizeDomains(domains, false)
 	for (let i = 0; i < sanitizedDomains.length; i++) {
-		if (defaultBlocklist[sanitizedDomains[i]] === undefined) {
+		if (defaultBlocklist[sanitizedDomains[i]] === undefined && whitelist[sanitizedDomains[i]] === undefined) {
 			yourBlocklist[sanitizedDomains[i]] = true
 		}
-		removeFromWhitelist(sanitizedDomains[i])
 	}
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 }
@@ -249,7 +247,7 @@ async function checkIfNeedsUpdate() {
 	const lastUpdate = await browser.storage.local.get('sesbLastUpdate').then((r) => r.sesbLastUpdate)
 	suffixList = await browser.storage.local.get('sesbSuffixList').then((r) => r.sesbSuffixList)
 	defaultBlocklist = await browser.storage.local.get('sesbBlocklist').then((r) => r.sesbBlocklist)
-	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || (Date.now() - lastUpdate > 604800)) {
+	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || (Date.now() - lastUpdate > 86400)) {
 		needsUpdate = true
 	}
 }

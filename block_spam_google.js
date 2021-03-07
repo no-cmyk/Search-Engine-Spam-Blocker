@@ -90,7 +90,7 @@ function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) 
 	}
 	div.innerHTML = 'Block '
 	createBlockButton(domain, div, elem)
-	if (url !== domain && !url.startsWith('www.')) {
+	if (url !== domain && url !== 'www.' + domain) {
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add('sesb-fix-height')

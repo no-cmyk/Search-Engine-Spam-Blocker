@@ -3,8 +3,17 @@ let suffixList
 let needsUpdate = false
 let yourBlocklist = {}
 let whitelist = {}
+const workerUrl = browser.runtime.getURL('worker.js')
+const defaultSettings = {showBlocked: 0, showButtons: 0, enabled: 1, enableDefaultBlocklist: 1}
+let settings
 const unlistedSuffixes = ['ac.pg','com.pg','gov.pg','mil.pg','net.pg','org.pg','academy.np','accountants.np','actor.np','aero.np','agency.np','asia.np','associates.np','audio.np','bar.np','bargains.np','beer.np','bid.np','bike.np','bio.np','biz.np','black.np','blue.np','boutique.np','build.np','builders.np','buzz.np','cab.np','camera.np','camp.np','capital.np','cards.np','care.np','careers.np','cash.np','catering.np','center.np','ceo.np','christmas.np','clinic.np','clothing.np','club.np','co.np','codes.np','coffee.np','college.np','com.np','community.np','company.np','computer.np','cool.np','coop.np','country.np','credit.np','creditcard.np','dental.np','diamonds.np','edu.np','email.np','engineering.np','estate.np','events.np','expert.np','finance.np','financial.np','fish.np','fishing.np','fitness.np','flights.np','florist.np','fund.np','furniture.np','futbol.np','gallery.np','gov.np','guitars.np','guru.np','hiphop.np','hiv.np','house.np','industries.np','info.np','ink.np','jobs.np','limited.np','link.np','management.np','marketing.np','media.np','menu.np','mil.np','mobi.np','museum.np','name.np','net.np','ninja.np','onl.np','org.np','partners.np','parts.np','photo.np','photos.np','pics.np','pink.np','pro.np','productions.np','products.np','properties.np','pub.np','red.np','rentals.np','repair.np','rest.np','rocks.np','services.np','shiksha.np','shoes.np','social.np','solar.np','solutions.np','space.np','supplies.np','supply.np','support.np','surf.np','surgery.np','systems.np','tattoo.np','tax.np','technology.np','tel.np','tips.np','today.np','tools.np','town.np','trade.np','training.np','travel.np','university.np','vacations.np','ventures.np','villas.np','vision.np','vodka.np','voting.np','voyage.np','watch.np','webcam.np','wiki.np','works.np','wtf.np','xyz.np','zone.np','com.kh','edu.kh','gov.kh','mil.kh','net.kh','org.kh','per.kh','com.mm','edu.mm','gov.mm','net.mm','org.mm','com.jm','edu.jm','gov.jm','mil.jm','net.jm','org.jm','ac.bd','co.bd','com.bd','edu.bd','gov.bd','info.bd','judiciary.org.bd','mil.bd','net.bd','org.bd','sw.bd','tv.bd','biz.ck','co.ck','edu.ck','gen.ck','gov.ck','info.ck','net.ck','org.ck','com.er','edu.er','gov.er','ind.er','mil.er','net.er','org.er','ac.fk','co.fk','gov.fk','net.fk','nom.fk','org.fk']
 browser.runtime.onMessage.addListener(handleMessages)
+
+function doWithWorker(onMessageFunction) {
+	const worker = new Worker(workerUrl)
+	worker.onmessage = onMessageFunction
+	worker.postMessage('hello')
+}
 
 function handleMessages(message) {
 	switch (message.action) {
@@ -15,10 +24,10 @@ function handleMessages(message) {
 		case 'unblock':
 			return Promise.resolve(unblock(message.url, message.isSub))
 		case 'update-multiple':
-			updateYourBlocklistMultiple(message.url)
+			doWithWorker(function(){updateMultiple(message.url)})
 			break
 		case 'whitelist-multiple':
-			whitelistMultiple(message.url)
+			doWithWorker(function(){whitelistMultiple(message.url)})
 			break
 		case 'load-your-blocklist':
 			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
@@ -37,6 +46,9 @@ function handleMessages(message) {
 		case 'clear-blocklist':
 			clearBlocklist()
 			break
+		case 'reload-settings':
+			loadSettings()
+			break
 		default:
 			break
 	}
@@ -44,8 +56,7 @@ function handleMessages(message) {
 
 /*--- Domain check ---*/
 
-async function checkUrl(url) {
-	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+function checkUrl(url) {
 	if (settings.enabled === 0) {
 		return undefined
 	}
@@ -70,8 +81,7 @@ async function checkUrl(url) {
 			(defaultBlocklist[noSubUrl] || defaultBlocklist[url] || yourBlocklist[noSubUrl] || yourBlocklist[url])
 			: (yourBlocklist[noSubUrl] || yourBlocklist[url])
 	}
-	const returnObj = {toRemove: toRemove, domain: noSubUrl, showBlocked: settings.showBlocked, showButtons: settings.showButtons}
-	return returnObj
+	return {toRemove: toRemove, domain: noSubUrl, showBlocked: settings.showBlocked, showButtons: settings.showButtons}
 }
 
 /*--- Your blocklist ---*/
@@ -86,35 +96,24 @@ function clearBlocklist() {
 	browser.storage.local.set({sesbYourBlocklist: undefined})
 }
 
-async function updateYourBlocklist(url) {
-	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+function updateYourBlocklist(url) {
 	if (defaultBlocklist[url] === undefined) {
-		const urlObj = {}
-		urlObj[url] = true
-		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
+		yourBlocklist[url] = true
+		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 	}
 	removeFromWhitelist(url)
-	const returnObj = {showBlocked: settings.showBlocked}
-	return returnObj
+	return {showBlocked: settings.showBlocked}
 }
 
-function updateYourBlocklistMultiple(domains) {
-	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
-	updateWorker.onmessage = function() {
-		updateMultipleWithWorker(domains)
-	}
-	updateWorker.postMessage(['hello'])
-}
-
-function updateMultipleWithWorker(domains) {
+function updateMultiple(domains) {
 	const sanitizedDomains = sanitizeDomains(domains, false)
-	const urlObj = {}
 	for (let i = 0; i < sanitizedDomains.length; i++) {
 		if (defaultBlocklist[sanitizedDomains[i]] === undefined) {
-			urlObj[sanitizedDomains[i]] = true
+			yourBlocklist[sanitizedDomains[i]] = true
 		}
+		removeFromWhitelist(sanitizedDomains[i])
 	}
-	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(Object.assign(yourBlocklist, urlObj))})
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 }
 
 /*--- Whitelist ---*/
@@ -125,39 +124,23 @@ function removeFromWhitelist(url) {
 }
 
 function whitelistDomain(domain) {
-	const urlObj = {}
-	urlObj[domain] = true
-	browser.storage.local.set({sesbWhitelist: JSON.stringify(Object.assign(whitelist, urlObj))})
+	whitelist[domain] = true
+	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
 }
 
 function whitelistMultiple(domains) {
-	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
-	updateWorker.onmessage = function() {
-		whitelistMultipleWithWorker(domains)
-	}
-	updateWorker.postMessage(['hello'])
-}
-
-function whitelistMultipleWithWorker(domains) {
 	const sanitizedDomains = sanitizeDomains(domains, false)
-	const urlObj = {}
 	for (let i = 0; i < sanitizedDomains.length; i++) {
-		urlObj[sanitizedDomains[i]] = true
+		whitelist[sanitizedDomains[i]] = true
 	}
-	browser.storage.local.set({sesbWhitelist: JSON.stringify(Object.assign(whitelist, urlObj))})
+	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
 }
 
 /*--- Unblock ---*/
 
-async function unblock(url, isSub) {
-	const settings = await browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
-	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
-	updateWorker.onmessage = function() {
-		unblockWithWorker(url, isSub)
-	}
-	updateWorker.postMessage(['hello'])
-	const returnObj = {showBlocked: settings.showBlocked}
-	return returnObj
+function unblock(url, isSub) {
+	doWithWorker(function(){unblockWithWorker(url, isSub)})
+	return {showBlocked: settings.showBlocked}
 }
 
 function unblockWithWorker(url, isSub) {
@@ -197,13 +180,12 @@ function unblockWithWorker(url, isSub) {
 
 /*--- Automatic update ---*/
 
-function handleNullSettings(settings) {
-	if (settings !== undefined) {
-		return settings
-	} else {
-		const settingsObj = {showBlocked: 0, showButtons: 0, enabled: 1, enableDefaultBlocklist: 1}
-		return settingsObj
-	}
+function handleNullSettings(savedSettings) {
+	settings = savedSettings === undefined ? defaultSettings : savedSettings
+}
+
+function loadSettings() {
+	browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
 async function loadYourBlocklist() {
@@ -224,12 +206,10 @@ function retainSuffixList(text) {
 	for (let i = 0; i < text.length; i++) {
 		if (text[i].includes('END ICANN DOMAINS')) {
 			break
+		} else if (text[i].startsWith('*') || text[i].startsWith('!')) {
+			validText.push(text[i].substring(2))
 		} else if (text[i] !== '' && !text[i].startsWith('/')) {
-			if (text[i].startsWith('*') || text[i].startsWith('!')) {
-				validText.push(text[i].substring(2))
-			} else {
-				validText.push(text[i])
-			}
+			validText.push(text[i])
 		}
 	}
 	sanitizedText = sanitizeDomains(validText, true)
@@ -275,10 +255,8 @@ async function checkIfNeedsUpdate() {
 }
 
 async function updateLists() {
-	const updateWorker = new Worker(browser.runtime.getURL('worker.js'))
-	updateWorker.onmessage = updateOnlineLists
-	const settings = await checkIfNeedsUpdate()
-	updateWorker.postMessage(['hello'])
+	const needsUpdateSettings = await checkIfNeedsUpdate()
+	doWithWorker(updateOnlineLists)
 }
 
 function updateOnlineLists() {
@@ -297,7 +275,7 @@ function updateOnlineLists() {
 }
 
 /*--- Sanitize URLs ---*/
-/*--- Includes code taken from github.com/bestiejs/punycode.js (provided under MIT license) ---*/
+/*--- Includes code from github.com/bestiejs/punycode.js (provided under MIT license) ---*/
 /*--- Copyright Mathias Bynens <https://mathiasbynens.be/> ---*/
 
 function digitToBasic(digit, flag) {
@@ -419,3 +397,4 @@ function sanitizeDomains(domains, skipRegex) {
 }
 
 updateLists()
+loadSettings()

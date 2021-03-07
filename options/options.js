@@ -21,10 +21,10 @@ function addListeners() {
 function handleClicks(click) {
 	switch (click.srcElement.id) {
 		case 'domain':
-			removeFromYourBlocklist(click.srcElement)
+			removeFromYourBlocklist(click.srcElement.parentElement)
 			break
 		case 'domain-whitelist':
-			removeFromWhitelist(click.srcElement)
+			removeFromWhitelist(click.srcElement.parentElement)
 			break
 		case 'update-spam-lists':
 			browser.runtime.sendMessage({action: 'update-spam-lists'})
@@ -76,8 +76,12 @@ function populateWhitelist() {
 	const c = document.createDocumentFragment()
 	for (let i = 0; i < whitelistDomainsAsList.length; i++) {
 		const li = document.createElement('li')
-		li.id = 'domain-whitelist'
+		const removeBtn = document.createElement('span')
+		removeBtn.id = 'domain-whitelist'
+		removeBtn.innerText = '✖'
+		removeBtn.title = 'Remove this domain from your whitelist?'
 		li.innerText = whitelistDomainsAsList[i]
+		li.prepend(removeBtn)
 		c.appendChild(li)
 	}
 	whitelistElem.appendChild(c)
@@ -90,8 +94,12 @@ function populateScrollList() {
 			break
 		}
 		const li = document.createElement('li')
-		li.id = 'domain'
+		const removeBtn = document.createElement('span')
+		removeBtn.id = 'domain'
+		removeBtn.innerText = '✖'
+		removeBtn.title = 'Remove this domain from your blocklist?'
 		li.innerText = domainsAsList[i]
+		li.prepend(removeBtn)
 		c.appendChild(li)
 	}
 	listElem.appendChild(c)
@@ -117,7 +125,7 @@ async function loadBlocklist() {
 }
 
 function removeFromYourBlocklist(li) {
-	browser.runtime.sendMessage({action: 'remove', url: li.innerText})
+	browser.runtime.sendMessage({action: 'remove', url: li.innerText.substring(1)})
 	li.remove()
 	if (listElem.childElementCount === 0) {
 		listIndex = 0
@@ -125,6 +133,6 @@ function removeFromYourBlocklist(li) {
 }
 
 function removeFromWhitelist(li) {
-	browser.runtime.sendMessage({action: 'remove-from-whitelist', url: li.innerText})
+	browser.runtime.sendMessage({action: 'remove-from-whitelist', url: li.innerText.substring(1)})
 	li.remove()
 }

@@ -34,17 +34,23 @@ ul {
 	min-height: 60px;
 	background-color: floralwhite;
 	overflow: auto;
+	cursor: default !important;
 }
 
 li {
 	padding: 2px;
-	cursor: pointer;
 }
 
-li:hover {
-	color: red;
-	text-decoration: line-through;
-	background-color: pink;
+li span {
+	color: crimson;
+	cursor: pointer;
+	margin-right: 5px;
+	font-size: 0.8px;
+	user-select: none;
+}
+
+li span:hover {
+	text-shadow: 1px 0px 2px lightcoral;
 }
 
 textarea {

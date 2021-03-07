@@ -1,53 +1,52 @@
-let showBlocked = 0
-let showButtons = 0
-let enabled = 1
-let enableDefaultBlocklist = 1
+let defaultSettings = {showBlocked: 0, showButtons: 0, enabled: 1, enableDefaultBlocklist: 1}
+let settings
 document.addEventListener('click', handleClicks)
 
 function handleClicks(click) {
-	let settingsToSave
 	switch (click.srcElement.id) {
 		case 'enabled':
-			settingsToSave = {showBlocked: showBlocked, showButtons: showButtons, enabled: (enabled ^= true), enableDefaultBlocklist: enableDefaultBlocklist}
+			settings.enabled ^= true
 			showOrHideSettings()
-			return browser.storage.local.set({sesbSettings: settingsToSave})
+			updateSettings()
+			break
 		case 'show-blocked':
-			settingsToSave = {showBlocked: (showBlocked ^= true), showButtons: showButtons, enabled: enabled, enableDefaultBlocklist: enableDefaultBlocklist}
-			return browser.storage.local.set({sesbSettings: settingsToSave})
+			settings.showBlocked ^= true
+			updateSettings()
+			break
 		case 'show-block-buttons':
-			settingsToSave = {showBlocked: showBlocked, showButtons: (showButtons ^= true), enabled: enabled, enableDefaultBlocklist: enableDefaultBlocklist}
-			return browser.storage.local.set({sesbSettings: settingsToSave})
+			settings.showButtons ^= true
+			updateSettings()
+			break
 		case 'enable-default-blocklist':
-			settingsToSave = {showBlocked: showBlocked, showButtons: showButtons, enabled: enabled, enableDefaultBlocklist: (enableDefaultBlocklist ^= true)}
-			return browser.storage.local.set({sesbSettings: settingsToSave})
+			settings.enableDefaultBlocklist ^= true
+			updateSettings()
+			break
 		case 'update-spam-lists':
 			browser.runtime.sendMessage({action: 'update-spam-lists'})
 			break
 		case 'manage-your-blocklist':
 			browser.tabs.create({url: browser.runtime.getURL('options/options.html')})
 			window.close()
-			break
 		default:
 			break
 	}
 }
 
-function handleNullSettings(settings) {
-	if (settings !== undefined) {
-		enabled = settings.enabled
-		showBlocked = settings.showBlocked
-		showButtons = settings.showButtons
-		enableDefaultBlocklist = settings.enableDefaultBlocklist
-	}
-	document.getElementById('enabled').checked = enabled
-	document.getElementById('show-blocked').checked = showBlocked
-	document.getElementById('show-block-buttons').checked = showButtons
-	document.getElementById('enable-default-blocklist').checked = enableDefaultBlocklist
+function updateSettings() {
+	browser.storage.local.set({sesbSettings: settings}).then(browser.runtime.sendMessage({action: 'reload-settings'}))
+}
+
+function handleNullSettings(savedSettings) {
+	settings = savedSettings === undefined ? defaultSettings : savedSettings
+	document.getElementById('enabled').checked = settings.enabled
+	document.getElementById('show-blocked').checked = settings.showBlocked
+	document.getElementById('show-block-buttons').checked = settings.showButtons
+	document.getElementById('enable-default-blocklist').checked = settings.enableDefaultBlocklist
 	showOrHideSettings()
 }
 
 function showOrHideSettings() {
-	if (enabled === 0) {
+	if (settings.enabled === 0) {
 		document.querySelectorAll('.to-hide').forEach(function(e) {e.classList.add('hidden')})
 		document.getElementById('manage-your-blocklist').classList.add('hidden')
 	} else {
@@ -56,7 +55,7 @@ function showOrHideSettings() {
 	}
 }
 
-async function loadSettings() {
+function loadSettings() {
 	browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 

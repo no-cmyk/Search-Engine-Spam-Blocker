@@ -10,10 +10,9 @@
 		<div class="section">
 			<div class="title">
 				<h3>Your blocklist</h3>
-				<h5>Click on a domain to unblock it</h5>
 			</div>
 			<div class="content">
-				<ul id="your-blocklist" title="Unblock this domain?"></ul>
+				<ul id="your-blocklist"></ul>
 				<a href=""><button id="export">Export</button></a>
 				<button class="dangerous" id="clear-blocklist">Clear</button>
 			</div>
@@ -41,6 +40,12 @@
 		</div>
 		<div class="section">
 			<div class="title">
+				<h3>Your whitelist</h3>
+			</div>
+			<div class="content">
+				<ul id="whitelist"></ul>
+			</div>
+			<div class="title">
 				<h3>Whitelist domains</h3>
 				<h5>One domain per line, no wildcards</h5>
 				<br>
@@ -49,9 +54,8 @@
 				<textarea id="whitelist-domains-textarea"></textarea>
 				<br>
 				<button id="whitelist-domains-button">Whitelist domains</button>
-				<ul id="whitelist" title="Remove from whitelist?"></ul>
 			</div>
-		</div>	
+		</div>
 		<div class="section">
 			<div class="title">
 				<h3>Built-in blocklist</h3>

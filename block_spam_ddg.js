@@ -20,7 +20,7 @@ function getClassToAdd(showBlocked) {
 function findAndBlock(response, url) {
 	if (response.whitelisted === true) {
 		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
-			browser.runtime.sendMessage({action: 'remove-from-whitelist', url: url})
+			browser.runtime.sendMessage({action: 'remove-from-whitelist-and-update', url: url})
 		} else {
 			return
 		}
@@ -73,17 +73,20 @@ function createBlockButton(url, div, elem) {
 	div.appendChild(button)
 }
 
-function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) {
+function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBlocked, toRemove) {
 	const div = document.createElement('div')
 	div.classList.add('sesb-block-div')
 	if (showButtons !== 1 || toRemove === true) {
 		div.classList.add('sesb-hidden')
 	}
 	if (showBlocked === 1) {
-		addUnblockButtons(elem, url, domain, showBlocked, toRemove)
+		addUnblockButtons(elem, url, domain, privateDomain, showBlocked, toRemove)
 	}
 	div.innerHTML = 'Block '
 	createBlockButton(domain, div, elem)
+	if (privateDomain !== undefined) {
+		createBlockButton(privateDomain, div, elem)
+	}
 	if (url !== domain && url !== 'www.' + domain) {
 		createBlockButton(url, div, elem)
 	}
@@ -108,7 +111,7 @@ function fixDimensions(elem, div) {
 	elem.appendChild(div)
 }
 
-function addUnblockButtons(elem, url, domain, showButtons, toRemove) {
+function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemove) {
 	const div = document.createElement('div')
 	div.classList.add('sesb-unblock-div')
 	if (showButtons !== 1 || toRemove !== true) {
@@ -116,6 +119,9 @@ function addUnblockButtons(elem, url, domain, showButtons, toRemove) {
 	}
 	div.innerHTML = 'Unblock '
 	createUnblockButton(domain, div, elem, false)
+	if (privateDomain !== undefined) {
+		createUnblockButton(privateDomain, div, elem, false)
+	}
 	if (url !== domain && !url.startsWith('www.')) {
 		createUnblockButton(url, div, elem, true)
 	}
@@ -135,7 +141,7 @@ async function removeElement(e) {
 		return
 	}
 	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
-	addBlockButtons(e, url, response.domain, response.showButtons, response.showBlocked, response.toRemove)
+	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
 	if (response.toRemove === true) {
 		const classToAdd = getClassToAdd(response.showBlocked)
 		e.classList.add(classToAdd)

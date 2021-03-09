@@ -33,7 +33,7 @@ function handleClicks(click) {
 			break
 		case 'export':
 			exportElem.parentElement.setAttribute('href', 'data:text/plaincharset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
-			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + Date.now() + '.txt')
+			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + new Date().toISOString() + '.txt')
 			break
 		case 'add-domains-button':
 			addDomains(textareaElem.value)

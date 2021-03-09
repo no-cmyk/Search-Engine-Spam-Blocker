@@ -1,27 +1,16 @@
-const textResult = '.result'
-const imgResult = '.tile--img'
+const textResult = 'result'
+const imgResult = 'tile--img'
 const mo = new MutationObserver(onMutation)
-observe()
+mo.observe(document, {subtree: true, childList: true})
 
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
-			if (n.tagName === 'DIV') {
-				if (n.matches(textResult)) {
-					removeElement(n)
-				} else if (n.matches(imgResult)) {
-					removeElement(n)
-				}
+			if (n.tagName === 'DIV' && (n.matches('.' + textResult) || n.matches('.' + imgResult))) {
+				removeElement(n)
 			}
 		}
 	}
-}
-
-function observe() {
-	mo.observe(document, {
-		subtree: true,
-		childList: true,
-	})
 }
 
 function getClassToAdd(showBlocked) {
@@ -29,8 +18,15 @@ function getClassToAdd(showBlocked) {
 }
 
 function findAndBlock(response, url) {
+	if (response.whitelisted === true) {
+		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
+			browser.runtime.sendMessage({action: 'remove-from-whitelist', url: url})
+		} else {
+			return
+		}
+	}
 	const classToAdd = getClassToAdd(response.showBlocked)
-	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(elem) {
 			const elemUrl = getUrl(elem)
 			if (elemUrl.endsWith(url)) {
@@ -45,7 +41,7 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(elem) {
 			const elemUrl = getUrl(elem)
 			if (elemUrl.endsWith(url)) {
@@ -92,7 +88,7 @@ function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) 
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains('result') ? elem.prepend(div) : fixDimensions(elem, div)
+	elem.classList.contains(textResult) ? elem.prepend(div) : fixDimensions(elem, div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
@@ -108,7 +104,7 @@ function fixDimensions(elem, div) {
 	const sub = elem.querySelector('.tile--img__sub')
 	dim.remove()
 	elem.insertBefore(dim, sub)
-	dim.classList.add('sesb-fix-ddg-image-dimensions')
+	dim.classList.add('sesb-fix-image-size')
 	elem.appendChild(div)
 }
 
@@ -124,11 +120,11 @@ function addUnblockButtons(elem, url, domain, showButtons, toRemove) {
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains('result') ? elem.prepend(div) : fixDimensions(elem, div)
+	elem.classList.contains(textResult) ? elem.prepend(div) : fixDimensions(elem, div)
 }
 
 function getUrl(e) {
-	return e.classList.contains('result') ?
+	return e.classList.contains(textResult) ?
 		e.querySelector('.result__url__domain').innerText.replace(/^http.*:\/\/|\/.*$/g, '')
 		: e.querySelector('.tile--img__sub').href.replace(/^http.*:\/\/|\/.*$/g, '')
 }

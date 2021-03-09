@@ -97,11 +97,14 @@ function clearBlocklist() {
 }
 
 function updateYourBlocklist(url) {
-	if (defaultBlocklist[url] === undefined && whitelist[url] === undefined) {
+	let whitelisted = false
+	if (whitelist[url]) {
+		whitelisted = true
+	} else if (defaultBlocklist[url] === undefined) {
 		yourBlocklist[url] = true
 		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 	}
-	return {showBlocked: settings.showBlocked}
+	return {showBlocked: settings.showBlocked, whitelisted: whitelisted}
 }
 
 function updateMultiple(domains) {

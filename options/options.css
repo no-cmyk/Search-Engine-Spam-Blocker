@@ -2,6 +2,11 @@ body {
 	font-family: sans-serif;
 }
 
+img {
+	max-height: 48px;
+	max-width: 48px;
+}
+
 button {
 	color: white;
 	font-size: 1em;
@@ -29,7 +34,7 @@ button:hover {
 ul {
 	padding: 2px;
 	list-style-type: none;
-	width: 600px;
+	width: 550px;
 	max-height: 200px;
 	min-height: 60px;
 	background-color: floralwhite;
@@ -54,7 +59,7 @@ li span:hover {
 }
 
 textarea {
-	width: 600px;
+	width: 550px;
 	font-family: sans-serif;
 	margin-bottom: 15px;
 }

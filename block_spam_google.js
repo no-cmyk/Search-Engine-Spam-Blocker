@@ -1,16 +1,16 @@
-const textResult = '.g'
-const imgResult = '.isv-r'
+const textResult = 'g'
+const imgResult = 'isv-r'
 const mo = new MutationObserver(onMutation)
-observe()
+mo.observe(document, {subtree: true, childList: true})
 
 const done = {}
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
 			if (n.tagName === 'DIV') {
-				if (n.matches(textResult)) {
+				if (n.matches('.' + textResult) && !n.classList.contains('mnr-c') && !n.classList.contains('g-blk')) {
 					removeElement(n, 0)
-				} else if (n.matches(imgResult) && !done[n.getAttribute('data-id')]) {
+				} else if (n.matches('.' + imgResult) && !done[n.getAttribute('data-id')]) {
 					removeElement(n, 1)
 					done[n.getAttribute('data-id')] = true
 				}
@@ -19,22 +19,22 @@ function onMutation(mutations) {
 	}
 }
 
-function observe() {
-	mo.observe(document, {
-		subtree: true,
-		childList: true,
-	})
-}
-
 function getClassToAdd(showBlocked) {
 	return showBlocked === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
 }
 
 function findAndBlock(response, url) {
+	if (response.whitelisted === true) {
+		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
+			browser.runtime.sendMessage({action: 'remove-from-whitelist', url: url})
+		} else {
+			return
+		}
+	}
 	const classToAdd = getClassToAdd(response.showBlocked)
-	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(elem) {
-			const pos = elem.classList.contains('g') ? 0 : 1
+			const pos = elem.classList.contains(textResult) ? 0 : 1
 			const elemUrl = getUrl(elem, pos)
 			if (elemUrl.endsWith(url)) {
 				elem.getElementsByClassName('sesb-block-div')[0].classList.add('sesb-hidden')
@@ -48,9 +48,9 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(elem) {
-			const pos = elem.classList.contains('g') ? 0 : 1
+			const pos = elem.classList.contains(textResult) ? 0 : 1
 			const elemUrl = getUrl(elem, pos)
 			if (elemUrl.endsWith(url)) {
 				elem.classList.remove('sesb-hidden', 'sesb-blocked-show')
@@ -94,7 +94,7 @@ function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) 
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains('g') ? elem.prepend(div) : elem.append(div)
+	elem.classList.contains(textResult) ? elem.prepend(div) : elem.append(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
@@ -117,7 +117,7 @@ function addUnblockButtons(elem, url, domain, showButtons, toRemove) {
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains('g') ? elem.prepend(div) : elem.append(div)
+	elem.classList.contains(textResult) ? elem.prepend(div) : elem.append(div)
 }
 
 function getUrl(e, pos) {

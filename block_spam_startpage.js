@@ -1,15 +1,15 @@
-const textResult = '.w-gl__result'
-const imgResult = '.image-container'
+const textResult = 'w-gl__result'
+const imgResult = 'image-container'
 const mo = new MutationObserver(onMutation)
-observe()
+mo.observe(document, {subtree: true, childList: true})
 
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
 			if (n.tagName === 'DIV') {
-				if (n.matches(textResult)) {
+				if (n.matches('.' + textResult)) {
 					removeElement(n, 0)
-				} else if (n.matches(imgResult)) {
+				} else if (n.matches('.' + imgResult)) {
 					removeElement(n, 1)
 				}
 			}
@@ -17,22 +17,22 @@ function onMutation(mutations) {
 	}
 }
 
-function observe() {
-	mo.observe(document, {
-		subtree: true,
-		childList: true,
-	})
-}
-
 function getClassToAdd(showBlocked) {
 	return showBlocked === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
 }
 
 function findAndBlock(response, url) {
+	if (response.whitelisted === true) {
+		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
+			browser.runtime.sendMessage({action: 'remove-from-whitelist', url: url})
+		} else {
+			return
+		}
+	}
 	const classToAdd = getClassToAdd(response.showBlocked)
-	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(elem) {
-			const pos = elem.classList.contains('w-gl__result') ? 0 : 1
+			const pos = elem.classList.contains(textResult) ? 0 : 1
 			const elemUrl = getUrl(elem, pos)
 			if (elemUrl.endsWith(url)) {
 				elem.getElementsByClassName('sesb-block-div')[0].classList.add('sesb-hidden')
@@ -46,9 +46,9 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	document.querySelectorAll(textResult + '\,' + imgResult).forEach(
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(elem) {
-			const pos = elem.classList.contains('w-gl__result') ? 0 : 1
+			const pos = elem.classList.contains(textResult) ? 0 : 1
 			const elemUrl = getUrl(elem, pos)
 			if (elemUrl.endsWith(url)) {
 				elem.classList.remove('sesb-hidden', 'sesb-blocked-show')
@@ -77,7 +77,7 @@ function unblock(url, isSub, event) {
 
 function appendBeforeDetails(elem, div) {
 	const details = elem.querySelector('.details')
-	details.classList.add('sesb-fix-ddg-image-dimensions')
+	details.classList.add('sesb-fix-image-size')
 	elem.insertBefore(div, details)
 }
 
@@ -85,7 +85,7 @@ function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Block ' + url + '?'
-	button.addEventListener('click', elem.classList.contains('w-gl__result') ? function(){updateYourBlocklist(url)} : function(event){updateYourBlocklist(url, event)})
+	button.addEventListener('click', elem.classList.contains(textResult) ? function(){updateYourBlocklist(url)} : function(event){updateYourBlocklist(url, event)})
 	div.appendChild(button)
 }
 
@@ -104,14 +104,14 @@ function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) 
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains('w-gl__result') ? elem.prepend(div) : appendBeforeDetails(elem, div)
+	elem.classList.contains(textResult) ? elem.prepend(div) : appendBeforeDetails(elem, div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Unblock ' + url + '?'
-	button.addEventListener('click', elem.classList.contains('w-gl__result') ? function(){unblock(url, isSub)} : function(event){unblock(url, isSub, event)})
+	button.addEventListener('click', elem.classList.contains(textResult) ? function(){unblock(url, isSub)} : function(event){unblock(url, isSub, event)})
 	div.appendChild(button)
 }
 
@@ -127,7 +127,7 @@ function addUnblockButtons(elem, url, domain, showButtons, toRemove) {
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains('w-gl__result') ? elem.prepend(div) : appendBeforeDetails(elem, div)
+	elem.classList.contains(textResult) ? elem.prepend(div) : appendBeforeDetails(elem, div)
 }
 
 function getUrl(e, pos) {

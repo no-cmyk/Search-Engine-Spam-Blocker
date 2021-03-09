@@ -1,22 +1,15 @@
-const textResult = '.serp-item'
+const textResult = 'serp-item'
 const mo = new MutationObserver(onMutation)
-observe()
+mo.observe(document, {subtree: true, childList: true})
 
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
-			if (n.tagName === 'LI' && n.matches(textResult)) {
+			if (n.tagName === 'LI' && n.matches('.' + textResult)) {
 				removeElement(n)
 			}
 		}
 	}
-}
-
-function observe() {
-	mo.observe(document, {
-		subtree: true,
-		childList: true,
-	})
 }
 
 function getClassToAdd(showBlocked) {
@@ -24,8 +17,15 @@ function getClassToAdd(showBlocked) {
 }
 
 function findAndBlock(response, url) {
+	if (response.whitelisted === true) {
+		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
+			browser.runtime.sendMessage({action: 'remove-from-whitelist', url: url})
+		} else {
+			return
+		}
+	}
 	const classToAdd = getClassToAdd(response.showBlocked)
-	document.querySelectorAll(textResult).forEach(
+	document.querySelectorAll('.' + textResult).forEach(
 		function(elem) {
 			const elemUrl = getUrl(elem)
 			if (elemUrl.endsWith(url)) {
@@ -40,7 +40,7 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	document.querySelectorAll(textResult).forEach(
+	document.querySelectorAll('.' + textResult).forEach(
 		function(elem) {
 			const elemUrl = getUrl(elem)
 			if (elemUrl.endsWith(url)) {
@@ -71,7 +71,6 @@ function createBlockButton(url, div, elem) {
 }
 
 function addBlockButtons(elem, url, domain, showButtons, showBlocked, toRemove) {
-	console.log("add buttons " + url)
 	const div = document.createElement('div')
 	div.classList.add('sesb-block-div')
 	if (showButtons !== 1 || toRemove === true) {

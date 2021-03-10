@@ -36,8 +36,8 @@ function handleClicks(click) {
 			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + new Date().toISOString() + '.txt')
 			break
 		case 'add-domains-button':
-			textareaElem.value = ''
 			addDomains(textareaElem.value)
+			textareaElem.value = ''
 			break
 		case 'clear-blocklist':
 			if (confirm('WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?')) {

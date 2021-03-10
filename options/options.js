@@ -36,6 +36,7 @@ function handleClicks(click) {
 			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + new Date().toISOString() + '.txt')
 			break
 		case 'add-domains-button':
+			listElem.innerHTML = ''
 			addDomains(textareaElem.value)
 			textareaElem.value = ''
 			break
@@ -107,8 +108,8 @@ function populateScrollList() {
 }
 
 function addDomains(domains) {
-	domainsAsList = domains.split('\n')
-	browser.runtime.sendMessage({action: 'update-multiple', url: domainsAsList})
+	let domainsToAdd = domains.split('\n')
+	browser.runtime.sendMessage({action: 'update-multiple', url: domainsToAdd})
 	setTimeout(function(){loadBlocklist()}, 1000)
 }
 

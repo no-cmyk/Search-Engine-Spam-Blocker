@@ -2,6 +2,20 @@ const textResult = 'w-gl__result'
 const imgResult = 'image-container'
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
+document.addEventListener('DOMContentLoaded', redo)
+
+// Workaround to catch nodes that slip through the MutationObserver
+function redo() {
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
+		function(n) {
+			if (n.matches('.' + textResult) && !n.matches('.sesb-fix-height')) {
+				removeElement(n, 0)
+			} else if (n.matches('.' + imgResult) && !n.matches('.sesb-fix-height')) {
+				removeElement(n, 1)
+			}
+		}
+	)
+}
 
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {

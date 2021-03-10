@@ -2,13 +2,27 @@ const textResult = 'g'
 const imgResult = 'isv-r'
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
+document.addEventListener('DOMContentLoaded', redo)
+
+// Workaround to catch nodes that slip through the MutationObserver
+function redo() {
+	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
+		function(n) {
+			if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && !n.matches('.sesb-fix-height')) {
+				removeElement(n, 0)
+			} else if (n.matches('.' + imgResult) && !n.matches('.sesb-fix-height')) {
+				removeElement(n, 1)
+			}
+		}
+	)
+}
 
 const done = {}
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
 			if (n.tagName === 'DIV') {
-				if (n.matches('.' + textResult) && !n.classList.contains('mnr-c') && !n.classList.contains('g-blk')) {
+				if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk')) {
 					removeElement(n, 0)
 				} else if (n.matches('.' + imgResult) && !done[n.getAttribute('data-id')]) {
 					removeElement(n, 1)

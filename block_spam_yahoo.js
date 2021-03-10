@@ -1,6 +1,18 @@
 const textResult = 'algo'
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
+document.addEventListener('DOMContentLoaded', redo)
+
+// Workaround to catch nodes that slip through the MutationObserver
+function redo() {
+	document.querySelectorAll('.' + textResult).forEach(
+		function(n) {
+			if (!n.matches('.sesb-fix-height')) {
+				removeElement(n)
+			}
+		}
+	)
+}
 
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {

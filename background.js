@@ -80,7 +80,7 @@ function checkUrl(url) {
 			}
 		}
 	} else {
-		noSubUrl = urlArray.slice(0, 3).join('.')
+		noSubUrl = url
 	}
 	let toRemove
 	if (whitelist[noSubUrl] || whitelist[url] || (privateUrl !== undefined && whitelist[privateUrl])) {

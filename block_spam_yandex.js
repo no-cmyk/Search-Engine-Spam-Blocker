@@ -1,7 +1,7 @@
 const textResult = 'serp-item'
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('DOMContentLoaded', redo)
+document.addEventListener('load', redo)
 
 // Workaround to catch nodes that slip through the MutationObserver
 function redo() {

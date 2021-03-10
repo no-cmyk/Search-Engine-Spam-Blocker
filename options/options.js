@@ -48,8 +48,9 @@ function handleClicks(click) {
 			}
 			break
 		case 'whitelist-domains-button':
-			textareaWhitelistElem.value = ''
+			whitelistElem.innerHTML = ''
 			whitelistDomains(textareaWhitelistElem.value)
+			textareaWhitelistElem.value = ''
 			break
 		default:
 			break

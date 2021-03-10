@@ -4,6 +4,7 @@ body {
 	width: 195px;
 	text-align: center;
 	cursor: default !important;
+	line-height: 20px;
 }
 
 button {

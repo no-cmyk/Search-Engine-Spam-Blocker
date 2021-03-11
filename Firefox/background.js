@@ -416,7 +416,7 @@ function sanitizeDomains(domains, skipRegex) {
 		} else {
 			checkedDomain = reg.exec(domain)
 			if (checkedDomain !== null) {
-				sanitizedDomains.push(checkedDomain[0].toLowerCase().replace(/^www\./g, ''))
+				sanitizedDomains.push(checkedDomain[0].toLowerCase())
 			}
 		}
 	}

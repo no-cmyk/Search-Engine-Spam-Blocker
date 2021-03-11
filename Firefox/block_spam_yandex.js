@@ -93,7 +93,7 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 	}
 	div.innerHTML = 'Block '
 	createBlockButton(domain, div, elem)
-	if (privateDomain !== url) {
+	if (privateDomain !== undefined && privateDomain !== url) {
 		createBlockButton(privateDomain, div, elem)
 	}
 	if (url !== domain) {
@@ -119,7 +119,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	}
 	div.innerHTML = 'Unblock '
 	createUnblockButton(domain, div, elem, false)
-	if (privateDomain !== url) {
+	if (privateDomain !== undefined && privateDomain !== url) {
 		createUnblockButton(privateDomain, div, elem, false)
 	}
 	if (url !== domain) {
@@ -130,7 +130,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 }
 
 function getUrl(e) {
-	return e.getElementsByTagName('a')[0].href.replace(/^http.*:\/\/|\/.*$/g, '').replace(/^www\./g, '')
+	return e.getElementsByTagName('a')[0].href.replace(/^http.*:\/\/|\/.*$/g, '')
 }
 
 async function removeElement(e) {

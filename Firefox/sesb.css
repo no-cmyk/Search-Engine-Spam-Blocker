@@ -1,0 +1,60 @@
+.sesb-blocked-show {
+	background-color: lightcoral !important;
+	outline: 2px solid lightcoral;
+}
+
+.sesb-block-div, .sesb-unblock-div {
+	font-weight: bold;
+	font-size: 0.8em;
+	line-height: normal;
+	text-align: left;
+	padding: 4px 0;
+}
+
+.sesb-block-div {
+	color: crimson;
+}
+
+.sesb-unblock-div {
+	color: white;
+}
+
+.sesb-block-div button, .sesb-unblock-div button {
+	cursor: pointer;
+	background: none;
+	border: none;
+	padding: 0 4px;
+	line-break: anywhere;
+}
+
+.sesb-block-div button {
+	color: darkred;
+}
+
+.sesb-unblock-div button {
+	color: white;
+}
+
+.sesb-block-div button:hover {
+	text-shadow: 1px 0px 2px lightcoral;
+}
+
+.sesb-unblock-div button:hover {
+	text-shadow: 1px 0px 2px white;
+}
+
+.sesb-block-div button:focus, .sesb-unblock-div button:focus {
+	outline: none;
+}
+
+.sesb-hidden {
+	display: none;
+}
+
+.sesb-fix-height {
+	height: auto !important;
+}
+
+.sesb-fix-image-size {
+	position: relative !important;
+}

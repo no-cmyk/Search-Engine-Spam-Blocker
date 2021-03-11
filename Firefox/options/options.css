@@ -50,7 +50,7 @@ li span {
 	color: crimson;
 	cursor: pointer;
 	margin-right: 5px;
-	font-size: 0.8px;
+	font-size: 0.8em;
 	user-select: none;
 }
 

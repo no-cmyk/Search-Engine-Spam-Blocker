@@ -36,7 +36,6 @@ function handleClicks(click) {
 			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + new Date().toISOString() + '.txt')
 			break
 		case 'add-domains-button':
-			listElem.innerHTML = ''
 			addDomains(textareaElem.value)
 			textareaElem.value = ''
 			break
@@ -49,7 +48,6 @@ function handleClicks(click) {
 			}
 			break
 		case 'whitelist-domains-button':
-			whitelistElem.innerHTML = ''
 			whitelistDomains(textareaWhitelistElem.value)
 			textareaWhitelistElem.value = ''
 			break
@@ -86,6 +84,7 @@ function populateWhitelist() {
 		li.prepend(removeBtn)
 		c.appendChild(li)
 	}
+	whitelistElem.innerHTML = ''
 	whitelistElem.appendChild(c)
 }
 
@@ -104,6 +103,7 @@ function populateScrollList() {
 		li.prepend(removeBtn)
 		c.appendChild(li)
 	}
+	listElem.innerHTML = ''
 	listElem.appendChild(c)
 }
 

@@ -78,8 +78,7 @@ function checkUrl(url) {
 			const toCheck = urlArray.slice(i, urlArray.length).join('.')
 			if (privateSuffixList[toCheck]) {
 				privateUrl = urlArray.slice(i-1, urlArray.length).join('.')
-			}
-			if (suffixList[toCheck]) {
+			} else if (suffixList[toCheck]) {
 				noSubUrl = urlArray.slice(i-1, urlArray.length).join('.')
 				break
 			}
@@ -166,7 +165,7 @@ function unblockWithWorker(url, isSub) {
 			// Attempting to unblock subdomain w/ domain blocked in your blocklist
 			if (url.endsWith(yourBlocklistProps[i]) && url !== yourBlocklistProps[i]) {
 				whitelistDomain(url)
-			// Unblock subdomain w/ subdomain blocked in your blocklist
+			// Attempting to unblock subdomain w/ subdomain blocked in your blocklist
 			} else if (url === yourBlocklistProps[i]) {
 				removeFromYourBlocklist(url)
 			}

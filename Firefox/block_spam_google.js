@@ -104,10 +104,10 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 	}
 	div.innerHTML = 'Block '
 	createBlockButton(domain, div, elem)
-	if (privateDomain !== undefined) {
+	if (privateDomain !== url) {
 		createBlockButton(privateDomain, div, elem)
 	}
-	if (url !== domain && url !== 'www.' + domain) {
+	if (url !== domain) {
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add('sesb-fix-height')
@@ -130,10 +130,10 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	}
 	div.innerHTML = 'Unblock '
 	createUnblockButton(domain, div, elem, false)
-	if (privateDomain !== undefined) {
+	if (privateDomain !== url) {
 		createUnblockButton(privateDomain, div, elem, false)
 	}
-	if (url !== domain && !url.startsWith('www.')) {
+	if (url !== domain) {
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add('sesb-fix-height')
@@ -141,7 +141,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 }
 
 function getUrl(e, pos) {
-	return e.getElementsByTagName('a')[pos].href.replace(/^http.*:\/\/|\/.*$/g, '')
+	return e.getElementsByTagName('a')[pos].href.replace(/^http.*:\/\/|\/.*$/g, '').replace(/^www\./g, '')
 }
 
 async function removeElement(e, pos) {

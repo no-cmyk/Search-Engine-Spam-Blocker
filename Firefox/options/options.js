@@ -36,6 +36,7 @@ function handleClicks(click) {
 			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + new Date().toISOString() + '.txt')
 			break
 		case 'add-domains-button':
+			listElem.innerHTML = ''
 			addDomains(textareaElem.value)
 			textareaElem.value = ''
 			break
@@ -48,6 +49,7 @@ function handleClicks(click) {
 			}
 			break
 		case 'whitelist-domains-button':
+			whitelistElem.innerHTML = ''
 			whitelistDomains(textareaWhitelistElem.value)
 			textareaWhitelistElem.value = ''
 			break
@@ -68,7 +70,7 @@ function handleFile(event) {
 function scrollList() {
 	if (listElem.scrollTop === (listElem.scrollHeight - listElem.offsetHeight) && listIndex < domainsAsList.length) {
 		listIndex += interval
-		populateScrollList(interval)
+		populateScrollList()
 	}
 }
 
@@ -84,7 +86,6 @@ function populateWhitelist() {
 		li.prepend(removeBtn)
 		c.appendChild(li)
 	}
-	whitelistElem.innerHTML = ''
 	whitelistElem.appendChild(c)
 }
 
@@ -103,7 +104,6 @@ function populateScrollList() {
 		li.prepend(removeBtn)
 		c.appendChild(li)
 	}
-	listElem.innerHTML = ''
 	listElem.appendChild(c)
 }
 
@@ -132,9 +132,11 @@ function removeFromYourBlocklist(li) {
 	if (listElem.childElementCount === 0) {
 		listIndex = 0
 	}
+	setTimeout(function(){loadBlocklist()}, 1000)
 }
 
 function removeFromWhitelist(li) {
 	browser.runtime.sendMessage({action: 'remove-from-whitelist', url: li.innerText.substring(1)})
 	li.remove()
+	setTimeout(function(){loadBlocklist()}, 1000)
 }

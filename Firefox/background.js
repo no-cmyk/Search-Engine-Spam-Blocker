@@ -2,6 +2,8 @@ let defaultBlocklist
 let suffixList
 let privateSuffixList
 let needsUpdate = false
+let optionsPageBlocklistUpdated = true
+let optionsPageWhitelistUpdated = true
 let yourBlocklist = {}
 let whitelist = {}
 const workerUrl = browser.runtime.getURL('worker.js')
@@ -25,9 +27,11 @@ function handleMessages(message) {
 		case 'unblock':
 			return Promise.resolve(unblock(message.url, message.isSub))
 		case 'update-multiple':
+			optionsPageBlocklistUpdated = false
 			doWithWorker(function(){updateMultiple(message.url)})
 			break
 		case 'whitelist-multiple':
+			optionsPageWhitelistUpdated = false
 			doWithWorker(function(){whitelistMultiple(message.url)})
 			break
 		case 'load-your-blocklist':
@@ -54,6 +58,18 @@ function handleMessages(message) {
 		case 'reload-settings':
 			loadSettings()
 			break
+		case 'check-options-blocklist-updated':
+			if (optionsPageBlocklistUpdated === true) {
+				optionsPageBlocklistUpdated = false
+				return Promise.resolve(true)
+			}
+			return Promise.resolve(false)
+		case 'check-options-whitelist-updated':
+			if (optionsPageWhitelistUpdated === true) {
+				optionsPageWhitelistUpdated = false
+				return Promise.resolve(true)
+			}
+			return Promise.resolve(false)
 		default:
 			break
 	}
@@ -122,6 +138,7 @@ function updateMultiple(domains) {
 			yourBlocklist[sanitizedDomains[i]] = true
 		}
 	}
+	optionsPageBlocklistUpdated = true
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 }
 
@@ -142,6 +159,7 @@ function whitelistMultiple(domains) {
 	for (let i = 0; i < sanitizedDomains.length; i++) {
 		whitelist[sanitizedDomains[i]] = true
 	}
+	optionsPageWhitelistUpdated = true
 	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
 }
 

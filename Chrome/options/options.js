@@ -110,20 +110,14 @@ function populateBlocklist() {
 function addDomainsToBlocklist(domains) {
 	let domainsToAdd = domains.split('\n')
 	chrome.runtime.sendMessage({action: 'update-multiple', url: domainsToAdd}, function(){
-		setTimeout(function(){loadLists(true, false)}, 1000)
-		if (listElem.innerHTML === '') {
-			setTimeout(function(){loadLists(true, false)}, 2000)
-		}
+		checkBlocklistUpdated()
 	})
 }
 
 function whitelistDomains(domains) {
 	whitelistDomainsAsList = domains.split('\n')
 	chrome.runtime.sendMessage({action: 'whitelist-multiple', url: whitelistDomainsAsList}, function(){
-		setTimeout(function(){loadLists(false, true)}, 1000)
-		if (whitelistElem.innerHTML === '') {
-			setTimeout(function(){loadLists(false, true)}, 2000)
-		}
+		checkWhitelistUpdated()
 	})
 }
 
@@ -148,17 +142,39 @@ function removeFromYourBlocklist(li) {
 	if (listElem.childElementCount === 0) {
 		listIndex = 0
 	}
-	setTimeout(function(){loadLists(true, false)}, 1000)
-	if (listElem.innerHTML === '') {
-		setTimeout(function(){loadLists(true, false)}, 2000)
-	}
 }
 
 function removeFromWhitelist(li) {
 	chrome.runtime.sendMessage({action: 'remove-from-whitelist', url: li.innerText.substring(1)})
 	li.remove()
-	setTimeout(function(){loadLists(false, true)}, 1000)
-	if (whitelistElem.innerHTML === '') {
-		setTimeout(function(){loadLists(false, true)}, 2000)
+}
+
+async function checkBlocklistUpdated() {
+	let updated = false
+	while (updated === false) {
+		await sleep(400)
+		chrome.runtime.sendMessage({action: 'check-options-blocklist-updated'}, function(r){
+			updated = r
+			if (r === true) {
+				loadLists(true, false)
+			}
+		}
 	}
+}
+
+async function checkWhitelistUpdated() {
+	let updated = false
+	while (updated === false) {
+		await sleep(400)
+		chrome.runtime.sendMessage({action: 'check-options-whitelist-updated'}, function(r){
+			updated = r
+			if (r === true) {
+				loadLists(false, true)
+			}
+		}
+	}
+}
+
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms))
 }

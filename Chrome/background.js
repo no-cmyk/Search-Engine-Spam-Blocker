@@ -2,6 +2,8 @@ let defaultBlocklist
 let suffixList
 let privateSuffixList
 let needsUpdate = false
+let optionsPageBlocklistUpdated = true
+let optionsPageWhitelistUpdated = true
 let yourBlocklist = {}
 let whitelist = {}
 const workerUrl = chrome.runtime.getURL('worker.js')
@@ -28,9 +30,11 @@ function handleMessages(message, sender, sendResponse) {
 			Promise.resolve(unblock(message.url, message.isSub)).then(result => sendResponse(result))
 			return true
 		case 'update-multiple':
+			optionsPageBlocklistUpdated = false
 			Promise.resolve(doWithWorker(function(){updateMultiple(message.url)})).then(result => sendResponse(result))
 			return true
 		case 'whitelist-multiple':
+			optionsPageWhitelistUpdated = false
 			Promise.resolve(doWithWorker(function(){whitelistMultiple(message.url)})).then(result => sendResponse(result))
 			return true
 		case 'load-your-blocklist':
@@ -59,6 +63,22 @@ function handleMessages(message, sender, sendResponse) {
 		case 'reload-settings':
 			loadSettings()
 			break
+		case 'check-options-blocklist-updated':
+			if (optionsPageBlocklistUpdated === true) {
+				optionsPageBlocklistUpdated = false
+				Promise.resolve(true).then(result => sendResponse(result))
+				return true
+			}
+			Promise.resolve(false).then(result => sendResponse(result))
+			return true
+		case 'check-options-whitelist-updated':
+			if (optionsPageWhitelistUpdated === true) {
+				optionsPageWhitelistUpdated = false
+				Promise.resolve(true).then(result => sendResponse(result))
+				return true
+			}
+			Promise.resolve(false).then(result => sendResponse(result))
+			return true
 		default:
 			break
 	}
@@ -127,6 +147,7 @@ function updateMultiple(domains) {
 			yourBlocklist[sanitizedDomains[i]] = true
 		}
 	}
+	optionsPageBlocklistUpdated = true
 	chrome.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 }
 
@@ -147,6 +168,7 @@ function whitelistMultiple(domains) {
 	for (let i = 0; i < sanitizedDomains.length; i++) {
 		whitelist[sanitizedDomains[i]] = true
 	}
+	optionsPageWhitelistUpdated = true
 	chrome.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
 }
 

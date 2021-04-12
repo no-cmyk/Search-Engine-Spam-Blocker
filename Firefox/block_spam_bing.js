@@ -2,7 +2,7 @@ const textResult = 'b_algo'
 const imgResult = 'imgpt'
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', redo)
+document.addEventListener('load', setTimeout(redo, 500))
 
 // Workaround to catch nodes that slip through the MutationObserver
 function redo() {

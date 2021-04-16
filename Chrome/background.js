@@ -285,15 +285,43 @@ function retainDefaultBlocklist(text) {
 	console.log('Blocklist OK')
 }
 
-function fetchDefaultBlocklist() {
-	fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
+function wait(delay){
+	return new Promise((resolve) => setTimeout(resolve, delay))
+}
+
+function handleErrorsBlocklist(response, tries) {
+	if (!response.ok) {
+		if (tries !== 0) {
+			return wait(4000).then(() => fetchDefaultBlocklist(tries - 1))
+		} else {
+			throw Error(response.statusText)
+		}
+	}
+	return response
+}
+
+function handleErrorsSuffixList(response, tries) {
+	if (!response.ok) {
+		if (tries !== 0) {
+			return wait(4000).then(() => fetchSuffixList(tries - 1))
+		} else {
+			throw Error(response.statusText)
+		}
+	}
+	return response
+}
+
+function fetchDefaultBlocklist(tries) {
+	return fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
+		.then((r) => handleErrorsBlocklist(r, tries))
 		.then((response) => response.text())
 		.then((text) => retainDefaultBlocklist(text.split('\n')))
 }
 
-function fetchSuffixList() {
+function fetchSuffixList(tries) {
 	// Cannot pull from publicsuffix.org/list/public_suffix_list.dat because of a CORS header missing
-	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
+	return fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
+		.then((r) => handleErrorsSuffixList(r, tries))
 		.then((response) => response.text())
 		.then((text) => retainSuffixList(text.split('\n')))
 }
@@ -316,8 +344,8 @@ async function updateLists() {
 function updateOnlineLists() {
 	if (needsUpdate) {
 		console.log('Updating lists...')
-		fetchSuffixList()
-		fetchDefaultBlocklist()
+		fetchSuffixList(10)
+		fetchDefaultBlocklist(10)
 		chrome.storage.local.set({sesbLastUpdate: Date.now()})
 		needsUpdate = false
 	} else {

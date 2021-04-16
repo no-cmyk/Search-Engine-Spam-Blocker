@@ -158,7 +158,7 @@ async function checkBlocklistUpdated() {
 			if (r === true) {
 				loadLists(true, false)
 			}
-		}
+		})
 	}
 }
 
@@ -171,7 +171,7 @@ async function checkWhitelistUpdated() {
 			if (r === true) {
 				loadLists(false, true)
 			}
-		}
+		})
 	}
 }
 

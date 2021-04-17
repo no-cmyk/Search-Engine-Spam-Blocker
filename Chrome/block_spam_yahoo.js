@@ -130,7 +130,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 }
 
 function getUrl(e) {
-	return e.getElementsByTagName('span')[0].innerText.replace(/^http.*:\/\/|\/.*$/g, '')
+	return e.getElementsByTagName('span')[0].innerText.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

@@ -143,8 +143,8 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 
 function getUrl(e) {
 	return e.classList.contains(textResult) ?
-		e.querySelector('.result__url__domain').innerText.replace(/^http.*:\/\/|\/.*$/g, '')
-		: e.querySelector('.tile--img__sub').href.replace(/^http.*:\/\/|\/.*$/g, '')
+		e.querySelector('.result__url__domain').innerText.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+		: e.querySelector('.tile--img__sub').href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

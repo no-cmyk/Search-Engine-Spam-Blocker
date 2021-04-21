@@ -280,21 +280,10 @@ function wait(delay){
 	return new Promise((resolve) => setTimeout(resolve, delay))
 }
 
-function handleErrorsBlocklist(response, tries) {
+function retryFetch(response, tries, functionToRetry) {
 	if (!response.ok) {
 		if (tries !== 0) {
-			return wait(4000).then(() => fetchDefaultBlocklist(tries - 1))
-		} else {
-			throw Error(response.statusText)
-		}
-	}
-	return response
-}
-
-function handleErrorsSuffixList(response, tries) {
-	if (!response.ok) {
-		if (tries !== 0) {
-			return wait(4000).then(() => fetchSuffixList(tries - 1))
+			return wait(4000).then(() => functionToRetry(tries - 1))
 		} else {
 			throw Error(response.statusText)
 		}
@@ -304,7 +293,7 @@ function handleErrorsSuffixList(response, tries) {
 
 function fetchDefaultBlocklist(tries) {
 	return fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
-		.then((r) => handleErrorsBlocklist(r, tries))
+		.then((r) => retryFetch(r, tries, fetchDefaultBlocklist))
 		.then((response) => response.text())
 		.then((text) => retainDefaultBlocklist(text.split('\n')))
 }
@@ -312,7 +301,7 @@ function fetchDefaultBlocklist(tries) {
 function fetchSuffixList(tries) {
 	// Cannot pull from publicsuffix.org/list/public_suffix_list.dat because of a CORS header missing
 	return fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
-		.then((r) => handleErrorsSuffixList(r, tries))
+		.then((r) => retryFetch(r, tries, fetchSuffixList))
 		.then((response) => response.text())
 		.then((text) => retainSuffixList(text.split('\n')))
 }

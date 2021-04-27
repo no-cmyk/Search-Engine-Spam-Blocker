@@ -320,7 +320,7 @@ async function checkIfNeedsUpdate() {
 	suffixList = await chrome.storage.local.get('sesbSuffixList', function(r){return r.sesbSuffixList})
 	privateSuffixList = await chrome.storage.local.get('sesbPrivateSuffixList', function(r){return r.sesbPrivateSuffixList})
 	defaultBlocklist = await chrome.storage.local.get('sesbBlocklist', function(r){return r.sesbBlocklist})
-	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || (Date.now() - lastUpdate > 86400)) {
+	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || privateSuffixList === undefined || (Date.now() - lastUpdate > 86400)) {
 		needsUpdate = true
 	}
 }
@@ -333,8 +333,8 @@ async function updateLists() {
 function updateOnlineLists() {
 	if (needsUpdate) {
 		console.log('Updating lists...')
-		fetchSuffixList(10)
-		fetchDefaultBlocklist(10)
+		fetchSuffixList(5)
+		fetchDefaultBlocklist(5)
 		chrome.storage.local.set({sesbLastUpdate: Date.now()})
 		needsUpdate = false
 	} else {

@@ -18,7 +18,7 @@ button {
 }
 
 button:hover {
-	-webkit-box-shadow: 0 2px 3px orange;
+	box-shadow: 0 2px 3px orange;
 }
 
 h3 {
@@ -54,7 +54,7 @@ h3 {
 }
 
 .switch input:checked + div {
-	-webkit-transform: translate3d(100%, 0, 0);
+	transform: translate3d(100%, 0, 0);
 	background: darkorange;
 }
 

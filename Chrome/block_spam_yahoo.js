@@ -1,4 +1,5 @@
 const textResult = 'algo'
+let updated
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
 document.addEventListener('load', function(){setInterval(redo, 500)})
@@ -92,7 +93,9 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 		addUnblockButtons(elem, url, domain, privateDomain, showBlocked, toRemove)
 	}
 	div.innerHTML = 'Block '
-	createBlockButton(domain, div, elem)
+	if (domain !== undefined) {
+		createBlockButton(domain, div, elem)
+	}
 	if (privateDomain !== undefined && privateDomain !== url) {
 		createBlockButton(privateDomain, div, elem)
 	}
@@ -139,6 +142,11 @@ async function removeElement(e) {
 		return
 	}
 	chrome.runtime.sendMessage({action: 'check', url: url}, function(response){
+		if (response.domain === undefined && updated === undefined) {
+			chrome.runtime.sendMessage({action: 'update-spam-lists'})
+			updated = true
+			return
+		}
 		addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
 		if (response.toRemove === true) {
 			const classToAdd = getClassToAdd(response.showBlocked)

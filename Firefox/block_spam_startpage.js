@@ -1,5 +1,6 @@
 const textResult = 'w-gl__result'
 const imgResult = 'image-container'
+let updated
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
 document.addEventListener('load', setInterval(redo, 500))
@@ -113,7 +114,9 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 		addUnblockButtons(elem, url, domain, privateDomain, showBlocked, toRemove)
 	}
 	div.innerHTML = 'Block '
-	createBlockButton(domain, div, elem)
+	if (domain !== undefined) {
+		createBlockButton(domain, div, elem)
+	}
 	if (privateDomain !== undefined && privateDomain !== url) {
 		createBlockButton(privateDomain, div, elem)
 	}
@@ -161,6 +164,11 @@ async function removeElement(e, pos) {
 		return
 	}
 	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
+	if (response.domain === undefined && updated === undefined) {
+		browser.runtime.sendMessage({action: 'update-spam-lists'})
+		updated = true
+		return
+	}
 	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
 	if (response.toRemove === true) {
 		const classToAdd = getClassToAdd(response.showBlocked)

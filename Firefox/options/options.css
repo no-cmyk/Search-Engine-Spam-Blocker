@@ -18,7 +18,7 @@ button {
 }
 
 button:hover {
-	-webkit-box-shadow: 0 2px 3px orange;
+	box-shadow: 0 2px 3px orange;
 }
 
 .dangerous {
@@ -28,7 +28,7 @@ button:hover {
 }
 
 .dangerous:hover {
-	-webkit-box-shadow: 0 2px 3px crimson;
+	box-shadow: 0 2px 3px crimson;
 }
 
 ul {
@@ -55,7 +55,7 @@ li span {
 }
 
 li span:hover {
-	text-shadow: 1px 0px 2px lightcoral;
+	text-shadow: 1px 0 2px lightcoral;
 }
 
 textarea {
@@ -76,12 +76,14 @@ textarea {
 	padding-left: 30px;
 }
 
-h3, h5 {
+h3 {
 	margin: 0;
 	color: darkorange;
 }
 
 h5 {
+	margin: 0;
+	color: darkorange;
 	padding-left: 15px;
 }
 

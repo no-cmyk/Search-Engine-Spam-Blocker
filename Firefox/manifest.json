@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "1.4.5.9",
+	"version": "1.4.5.10",
 	"description": "Blocks spam from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/Search-Engine-Spam-Blocklist",
 
@@ -47,13 +47,7 @@
 			"css": ["sesb.css"]
 		},
 		{
-			"matches": ["*://*.yandex.com/search/*"],
-			"run_at": "document_start",
-			"js": ["block_spam_yandex.js"],
-			"css": ["sesb.css"]
-		},
-		{
-			"matches": ["*://*.yandex.ru/search/*"],
+			"matches": ["*://*.yandex.com/search/*","*://*.yandex.ru/search/*"],
 			"run_at": "document_start",
 			"js": ["block_spam_yandex.js"],
 			"css": ["sesb.css"]

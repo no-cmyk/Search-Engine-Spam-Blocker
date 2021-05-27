@@ -9,7 +9,7 @@ document.addEventListener('load', setInterval(redo, 500))
 function redo() {
 	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(n) {
-			if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && !n.matches('.sesb-fix-height')) {
+			if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && !n.matches('.sesb-fix-height') && n.getAttribute('data-hveid') === null) {
 				removeElement(n, 0)
 			} else if (n.matches('.' + imgResult) && !n.matches('.sesb-fix-height')) {
 				removeElement(n, 1)
@@ -23,7 +23,7 @@ function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
 			if (n.tagName === 'DIV') {
-				if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk')) {
+				if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && n.getAttribute('data-hveid') === null) {
 					removeElement(n, 0)
 				} else if (n.matches('.' + imgResult) && !done[n.getAttribute('data-id')]) {
 					removeElement(n, 1)
@@ -153,14 +153,16 @@ async function removeElement(e, pos) {
 		return
 	}
 	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
-	if (response.domain === undefined && updated === undefined) {
-		browser.runtime.sendMessage({action: 'update-spam-lists'})
-		updated = true
-		return
-	}
-	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
-	if (response.toRemove === true) {
-		const classToAdd = getClassToAdd(response.showBlocked)
-		e.classList.add(classToAdd)
+	if (response !== undefined) {
+		if (response.domain === undefined && updated === undefined) {
+			browser.runtime.sendMessage({action: 'update-spam-lists'})
+			updated = true
+			return
+		}
+		addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
+		if (response.toRemove === true) {
+			const classToAdd = getClassToAdd(response.showBlocked)
+			e.classList.add(classToAdd)
+		}
 	}
 }

@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "1.4.5.10",
+	"version": "1.4.5.11",
 	"description": "Blocks spam from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/Search-Engine-Spam-Blocklist",
 

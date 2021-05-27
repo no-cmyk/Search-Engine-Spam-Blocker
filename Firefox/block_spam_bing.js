@@ -154,14 +154,16 @@ async function removeElement(e, pos) {
 		return
 	}
 	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
-	if (response.domain === undefined && updated === undefined) {
-		browser.runtime.sendMessage({action: 'update-spam-lists'})
-		updated = true
-		return
-	}
-	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
-	if (response.toRemove === true) {
-		const classToAdd = getClassToAdd(response.showBlocked)
-		e.classList.add(classToAdd)
+	if (response !== undefined) {
+		if (response.domain === undefined && updated === undefined) {
+			browser.runtime.sendMessage({action: 'update-spam-lists'})
+			updated = true
+			return
+		}
+		addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
+		if (response.toRemove === true) {
+			const classToAdd = getClassToAdd(response.showBlocked)
+			e.classList.add(classToAdd)
+		}
 	}
 }

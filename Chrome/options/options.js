@@ -32,8 +32,8 @@ function handleClicks(click) {
 			setTimeout(function(){resultOkElem.classList.add('hidden')}, 3000)
 			break
 		case 'export':
-			exportElem.parentElement.setAttribute('href', 'data:text/plaincharset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
-			exportElem.parentElement.setAttribute('download', 'sesb_blocklist_' + new Date().toISOString() + '.txt')
+			exportElem.parentElement.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
+			exportElem.parentElement.setAttribute('download', 'SESB_Blocklist_' + new Date().toISOString() + '.txt')
 			break
 		case 'add-domains-button':
 			listElem.innerHTML = ''
@@ -61,6 +61,7 @@ function handleClicks(click) {
 function handleFile(event) {
 	const fileReader = new FileReader()
 	fileReader.onload = function(event) {
+		listElem.innerHTML = ''
 		addDomainsToBlocklist(event.target.result)
 	}
 	fileReader.readAsText(event.target.files[0])

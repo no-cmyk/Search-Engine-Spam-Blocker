@@ -5,11 +5,10 @@ const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
 document.addEventListener('load', setInterval(redo, 500))
 
-// Workaround to catch nodes that slip through the MutationObserver
 function redo() {
 	document.querySelectorAll('.' + textResult + '\,.' + imgResult).forEach(
 		function(n) {
-			if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && !n.matches('.sesb-fix-height') && n.getAttribute('data-hveid') === null) {
+			if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && !n.matches('.sesb-fix-height')) {
 				removeElement(n, 0)
 			} else if (n.matches('.' + imgResult) && !n.matches('.sesb-fix-height')) {
 				removeElement(n, 1)
@@ -23,7 +22,7 @@ function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
 			if (n.tagName === 'DIV') {
-				if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk') && n.getAttribute('data-hveid') === null) {
+				if (n.matches('.' + textResult) && !n.matches('.mnr-c') && !n.matches('.g-blk')) {
 					removeElement(n, 0)
 				} else if (n.matches('.' + imgResult) && !done[n.getAttribute('data-id')]) {
 					removeElement(n, 1)
@@ -114,7 +113,7 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains(textResult) ? elem.prepend(div) : elem.append(div)
+	elem.append(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
@@ -140,7 +139,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add('sesb-fix-height')
-	elem.classList.contains(textResult) ? elem.prepend(div) : elem.append(div)
+	elem.append(div)
 }
 
 function getUrl(e, pos) {

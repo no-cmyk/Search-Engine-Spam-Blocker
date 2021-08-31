@@ -1,78 +1,67 @@
+'use strict'
 const textResult = 'serp-item'
 let updated
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', setInterval(redo, 500))
+document.addEventListener('load', function(){setInterval(redo, 500)}, true)
 
-// Workaround to catch nodes that slip through the MutationObserver
 function redo() {
-	document.querySelectorAll('.' + textResult).forEach(
-		function(n) {
-			if (!n.matches('.sesb-fix-height')) {
-				removeElement(n)
-			}
+	for (const n of document.querySelectorAll('.' + textResult)) {
+		if (n.tagName === 'LI' && !n.classList.contains(sesbConstants.css.fixHeight) && n.getAttribute('data-fast-name') === null) {
+			removeElement(n)
 		}
-	)
+	}
 }
 
 function onMutation(mutations) {
 	for (const {addedNodes} of mutations) {
 		for (const n of addedNodes) {
-			if (n.tagName === 'LI' && n.matches('.' + textResult)) {
+			if (n.tagName === 'LI' && n.classList.contains(textResult) && n.getAttribute('data-fast-name') === null) {
 				removeElement(n)
 			}
 		}
 	}
 }
 
-function getClassToAdd(showBlocked) {
-	return showBlocked === 1 ? 'sesb-blocked-show' : 'sesb-hidden'
-}
-
 function findAndBlock(response, url) {
 	if (response.whitelisted === true) {
 		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
-			browser.runtime.sendMessage({action: 'remove-from-whitelist-and-update', url: url})
+			browser.runtime.sendMessage({action: sesbConstants.actions.removeFromWhitelistAndUpdate, url: url})
 		} else {
 			return
 		}
 	}
-	const classToAdd = getClassToAdd(response.showBlocked)
-	document.querySelectorAll('.' + textResult).forEach(
-		function(elem) {
-			const elemUrl = getUrl(elem)
-			if (elemUrl.endsWith(url)) {
-				elem.getElementsByClassName('sesb-block-div')[0].classList.add('sesb-hidden')
-				elem.classList.add(classToAdd)
-				if (response.showBlocked) {
-					elem.getElementsByClassName('sesb-unblock-div')[0].classList.remove('sesb-hidden')
-				}
+	for (const elem of document.querySelectorAll('.' + textResult)) {
+		if (elem.classList.contains(sesbConstants.css.fixHeight) && getUrl(elem).endsWith(url)) {
+			elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.add(sesbConstants.css.hidden)
+			if (response.showBlocked === 1) {
+				elem.classList.add(sesbConstants.css.blockedShow)
+				elem.getElementsByClassName(sesbConstants.css.unblockDiv)[0].classList.remove(sesbConstants.css.hidden)
+			} else {
+				elem.classList.add(sesbConstants.css.hidden)
 			}
 		}
-	)
+	}
 }
 
 function findAndUnblock(response, url) {
-	document.querySelectorAll('.' + textResult).forEach(
-		function(elem) {
-			const elemUrl = getUrl(elem)
-			if (elemUrl.endsWith(url)) {
-				elem.classList.remove('sesb-hidden', 'sesb-blocked-show')
-				if (response.showBlocked) {
-					elem.getElementsByClassName('sesb-block-div')[0].classList.remove('sesb-hidden')
-				}
-				elem.getElementsByClassName('sesb-unblock-div')[0].classList.add('sesb-hidden')
+	for (const elem of document.querySelectorAll('.' + textResult)) {
+		if (elem.classList.contains(sesbConstants.css.fixHeight) && getUrl(elem).endsWith(url)) {
+			elem.classList.remove(sesbConstants.css.hidden, sesbConstants.css.blockedShow)
+			if (response.showBlocked === 1) {
+				elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.remove(sesbConstants.css.hidden)
 			}
+			elem.getElementsByClassName(sesbConstants.css.unblockDiv)[0].classList.add(sesbConstants.css.hidden)
 		}
-	)
+	}
 }
 
 function updateYourBlocklist(url) {
-	browser.runtime.sendMessage({action: 'update', url: url}).then((resp) => findAndBlock(resp, url))
+	browser.runtime.sendMessage({action: sesbConstants.actions.update, url: url}).then((resp) => findAndBlock(resp, url))
 }
 
 function unblock(url, isSub) {
-	browser.runtime.sendMessage({action: 'unblock', url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
+	browser.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
 }
 
 function createBlockButton(url, div, elem) {
@@ -85,14 +74,14 @@ function createBlockButton(url, div, elem) {
 
 function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBlocked, toRemove) {
 	const div = document.createElement('div')
-	div.classList.add('sesb-block-div')
+	div.classList.add(sesbConstants.css.blockDiv)
+	div.innerHTML = 'Block '
 	if (showButtons !== 1 || toRemove === true) {
-		div.classList.add('sesb-hidden')
+		div.classList.add(sesbConstants.css.hidden)
 	}
 	if (showBlocked === 1) {
 		addUnblockButtons(elem, url, domain, privateDomain, showBlocked, toRemove)
 	}
-	div.innerHTML = 'Block '
 	if (domain !== undefined) {
 		createBlockButton(domain, div, elem)
 	}
@@ -102,7 +91,7 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 	if (url !== domain) {
 		createBlockButton(url, div, elem)
 	}
-	elem.classList.add('sesb-fix-height')
+	elem.classList.add(sesbConstants.css.fixHeight)
 	elem.prepend(div)
 }
 
@@ -116,11 +105,11 @@ function createUnblockButton(url, div, elem, isSub) {
 
 function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemove) {
 	const div = document.createElement('div')
-	div.classList.add('sesb-unblock-div')
-	if (showButtons !== 1 || toRemove !== true) {
-		div.classList.add('sesb-hidden')
-	}
+	div.classList.add(sesbConstants.css.unblockDiv)
 	div.innerHTML = 'Unblock '
+	if (showButtons !== 1 || toRemove !== true) {
+		div.classList.add(sesbConstants.css.hidden)
+	}
 	createUnblockButton(domain, div, elem, false)
 	if (privateDomain !== undefined && privateDomain !== url) {
 		createUnblockButton(privateDomain, div, elem, false)
@@ -128,7 +117,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	if (url !== domain) {
 		createUnblockButton(url, div, elem, true)
 	}
-	elem.classList.add('sesb-fix-height')
+	elem.classList.add(sesbConstants.css.fixHeight)
 	elem.prepend(div)
 }
 
@@ -141,17 +130,17 @@ async function removeElement(e) {
 	if (url === '' || url === undefined) {
 		return
 	}
-	const response = await browser.runtime.sendMessage({action: 'check', url: url}).catch((e) => console.error(e))
-	if (response !== undefined) {
-		if (response.domain === undefined && updated === undefined) {
-			browser.runtime.sendMessage({action: 'update-spam-lists'})
-			updated = true
-			return
-		}
-		addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
-		if (response.toRemove === true) {
-			const classToAdd = getClassToAdd(response.showBlocked)
-			e.classList.add(classToAdd)
-		}
+	const response = await browser.runtime.sendMessage({action: sesbConstants.actions.check, url: url})
+	if (response === undefined) {
+		return
 	}
+	if (response.domain === undefined && updated === undefined) {
+		browser.runtime.sendMessage({action: sesbConstants.actions.updateSpamLists})
+		updated = true
+		return
+	}
+	if (response.toRemove === true) {
+		e.classList.add(response.showBlocked === 1 ? sesbConstants.css.blockedShow : sesbConstants.css.hidden)
+	}
+	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
 }

@@ -1,10 +1,11 @@
-const listElem = document.getElementById('your-blocklist')
-const exportElem = document.getElementById('export')
-const importElem = document.getElementById('import')
-const textareaElem = document.getElementById('add-domains-textarea')
-const resultOkElem = document.getElementById('result-ok')
-const textareaWhitelistElem = document.getElementById('whitelist-domains-textarea')
-const whitelistElem = document.getElementById('whitelist')
+'use strict'
+const listElem = document.getElementById(sesbConstants.html.yourBlocklist)
+const exportElem = document.getElementById(sesbConstants.html.export)
+const importElem = document.getElementById(sesbConstants.html.import)
+const textareaElem = document.getElementById(sesbConstants.html.addDomainsTextarea)
+const resultOkElem = document.getElementById(sesbConstants.html.resultOk)
+const textareaWhitelistElem = document.getElementById(sesbConstants.html.whitelistDomainsTextarea)
+const whitelistElem = document.getElementById(sesbConstants.html.whitelist)
 let domainsAsList = []
 let whitelistDomainsAsList = []
 let listIndex = 0
@@ -20,35 +21,35 @@ function addListeners() {
 
 function handleClicks(click) {
 	switch (click.srcElement.id) {
-		case 'domain':
+		case sesbConstants.html.domain:
 			removeFromYourBlocklist(click.srcElement.parentElement)
 			break
-		case 'domain-whitelist':
+		case sesbConstants.html.domainWhitelist:
 			removeFromWhitelist(click.srcElement.parentElement)
 			break
-		case 'update-spam-lists':
-			chrome.runtime.sendMessage({action: 'update-spam-lists'})
+		case sesbConstants.html.updateSpamLists:
+			chrome.runtime.sendMessage({action: sesbConstants.actions.updateSpamLists})
 			resultOkElem.classList.remove('hidden')
 			setTimeout(function(){resultOkElem.classList.add('hidden')}, 3000)
 			break
-		case 'export':
+		case sesbConstants.html.export:
 			exportElem.parentElement.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
 			exportElem.parentElement.setAttribute('download', 'SESB_Blocklist_' + new Date().toISOString() + '.txt')
 			break
-		case 'add-domains-button':
+		case sesbConstants.html.addDomainsButton:
 			listElem.innerHTML = ''
 			addDomainsToBlocklist(textareaElem.value)
 			textareaElem.value = ''
 			break
-		case 'clear-blocklist':
+		case sesbConstants.html.clearBlocklist:
 			if (confirm('WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?')) {
 				domainsAsList = []
 				listElem.innerHTML = ''
 				listIndex = 0
-				chrome.runtime.sendMessage({action: 'clear-blocklist'})
+				chrome.runtime.sendMessage({action: sesbConstants.actions.clearBlocklist})
 			}
 			break
-		case 'whitelist-domains-button':
+		case sesbConstants.html.whitelistDomainsButton:
 			whitelistElem.innerHTML = ''
 			whitelistDomains(textareaWhitelistElem.value)
 			textareaWhitelistElem.value = ''
@@ -80,7 +81,7 @@ function populateWhitelist() {
 	for (let i = 0; i < whitelistDomainsAsList.length; i++) {
 		const li = document.createElement('li')
 		const removeBtn = document.createElement('span')
-		removeBtn.id = 'domain-whitelist'
+		removeBtn.id = sesbConstants.html.domainWhitelist
 		removeBtn.innerText = '✖'
 		removeBtn.title = 'Remove this domain from your whitelist?'
 		li.innerText = whitelistDomainsAsList[i]
@@ -98,7 +99,7 @@ function populateBlocklist() {
 		}
 		const li = document.createElement('li')
 		const removeBtn = document.createElement('span')
-		removeBtn.id = 'domain'
+		removeBtn.id = sesbConstants.html.domain
 		removeBtn.innerText = '✖'
 		removeBtn.title = 'Remove this domain from your blocklist?'
 		li.innerText = domainsAsList[i]
@@ -110,35 +111,35 @@ function populateBlocklist() {
 
 function addDomainsToBlocklist(domains) {
 	let domainsToAdd = domains.split('\n')
-	chrome.runtime.sendMessage({action: 'update-multiple', url: domainsToAdd}, function(){
+	chrome.runtime.sendMessage({action: sesbConstants.actions.updateMultiple, url: domainsToAdd}, function(){
 		checkBlocklistUpdated()
 	})
 }
 
 function whitelistDomains(domains) {
 	whitelistDomainsAsList = domains.split('\n')
-	chrome.runtime.sendMessage({action: 'whitelist-multiple', url: whitelistDomainsAsList}, function(){
+	chrome.runtime.sendMessage({action: sesbConstants.actions.whitelistMultiple, url: whitelistDomainsAsList}, function(){
 		checkWhitelistUpdated()
 	})
 }
 
 function loadLists(loadBlock, loadWhite) {
 	if (loadBlock === true) {
-		chrome.runtime.sendMessage({action: 'load-your-blocklist'}, function(bl){
+		chrome.runtime.sendMessage({action: sesbConstants.actions.loadYourBlocklist}, function(bl){
 			domainsAsList = bl
 			populateBlocklist()
 		})
 	}
 	if (loadWhite === true) {
-		chrome.runtime.sendMessage({action: 'load-whitelist'}, function(wl){
-		whitelist = wl
+		chrome.runtime.sendMessage({action: sesbConstants.actions.loadWhitelist}, function(wl){
+		whitelistDomainsAsList = wl
 		populateWhitelist()
 		})
 	}
 }
 
 function removeFromYourBlocklist(li) {
-	chrome.runtime.sendMessage({action: 'remove', url: li.innerText.substring(1)})
+	chrome.runtime.sendMessage({action: sesbConstants.actions.remove, url: li.innerText.substring(1)})
 	li.remove()
 	if (listElem.childElementCount === 0) {
 		listIndex = 0
@@ -146,7 +147,7 @@ function removeFromYourBlocklist(li) {
 }
 
 function removeFromWhitelist(li) {
-	chrome.runtime.sendMessage({action: 'remove-from-whitelist', url: li.innerText.substring(1)})
+	chrome.runtime.sendMessage({action: sesbConstants.actions.removeFromWhitelist, url: li.innerText.substring(1)})
 	li.remove()
 }
 
@@ -154,7 +155,7 @@ async function checkBlocklistUpdated() {
 	let updated = false
 	while (updated === false) {
 		await sleep(400)
-		chrome.runtime.sendMessage({action: 'check-options-blocklist-updated'}, function(r){
+		chrome.runtime.sendMessage({action: sesbConstants.actions.checkOptionsBlocklistUpdated}, function(r){
 			updated = r
 			if (r === true) {
 				loadLists(true, false)
@@ -167,7 +168,7 @@ async function checkWhitelistUpdated() {
 	let updated = false
 	while (updated === false) {
 		await sleep(400)
-		chrome.runtime.sendMessage({action: 'check-options-whitelist-updated'}, function(r){
+		chrome.runtime.sendMessage({action: sesbConstants.actions.checkOptionsWhitelistUpdated}, function(r){
 			updated = r
 			if (r === true) {
 				loadLists(false, true)

@@ -1,3 +1,4 @@
+'use strict'
 let defaultBlocklist
 let suffixList
 let privateSuffixList
@@ -7,9 +8,7 @@ let optionsPageWhitelistUpdated = true
 let yourBlocklist = {}
 let whitelist = {}
 const workerUrl = browser.runtime.getURL('worker.js')
-const defaultSettings = {showBlocked: 0, showButtons: 0, enabled: 1, enableDefaultBlocklist: 1}
 let settings
-const unlistedSuffixes = ['ac.pg','com.pg','gov.pg','mil.pg','net.pg','org.pg','academy.np','accountants.np','actor.np','aero.np','agency.np','asia.np','associates.np','audio.np','bar.np','bargains.np','beer.np','bid.np','bike.np','bio.np','biz.np','black.np','blue.np','boutique.np','build.np','builders.np','buzz.np','cab.np','camera.np','camp.np','capital.np','cards.np','care.np','careers.np','cash.np','catering.np','center.np','ceo.np','christmas.np','clinic.np','clothing.np','club.np','co.np','codes.np','coffee.np','college.np','com.np','community.np','company.np','computer.np','cool.np','coop.np','country.np','credit.np','creditcard.np','dental.np','diamonds.np','edu.np','email.np','engineering.np','estate.np','events.np','expert.np','finance.np','financial.np','fish.np','fishing.np','fitness.np','flights.np','florist.np','fund.np','furniture.np','futbol.np','gallery.np','gov.np','guitars.np','guru.np','hiphop.np','hiv.np','house.np','industries.np','info.np','ink.np','jobs.np','limited.np','link.np','management.np','marketing.np','media.np','menu.np','mil.np','mobi.np','museum.np','name.np','net.np','ninja.np','onl.np','org.np','partners.np','parts.np','photo.np','photos.np','pics.np','pink.np','pro.np','productions.np','products.np','properties.np','pub.np','red.np','rentals.np','repair.np','rest.np','rocks.np','services.np','shiksha.np','shoes.np','social.np','solar.np','solutions.np','space.np','supplies.np','supply.np','support.np','surf.np','surgery.np','systems.np','tattoo.np','tax.np','technology.np','tel.np','tips.np','today.np','tools.np','town.np','trade.np','training.np','travel.np','university.np','vacations.np','ventures.np','villas.np','vision.np','vodka.np','voting.np','voyage.np','watch.np','webcam.np','wiki.np','works.np','wtf.np','xyz.np','zone.np','com.kh','edu.kh','gov.kh','mil.kh','net.kh','org.kh','per.kh','com.mm','edu.mm','gov.mm','net.mm','org.mm','com.jm','edu.jm','gov.jm','mil.jm','net.jm','org.jm','ac.bd','co.bd','com.bd','edu.bd','gov.bd','info.bd','judiciary.org.bd','mil.bd','net.bd','org.bd','sw.bd','tv.bd','biz.ck','co.ck','edu.ck','gen.ck','gov.ck','info.ck','net.ck','org.ck','com.er','edu.er','gov.er','ind.er','mil.er','net.er','org.er','ac.fk','co.fk','gov.fk','net.fk','nom.fk','org.fk']
 browser.runtime.onMessage.addListener(handleMessages)
 
 function doWithWorker(onMessageFunction) {
@@ -20,51 +19,51 @@ function doWithWorker(onMessageFunction) {
 
 function handleMessages(message) {
 	switch (message.action) {
-		case 'check':
+		case sesbConstants.actions.check:
 			return Promise.resolve(checkUrl(message.url))
-		case 'update':
+		case sesbConstants.actions.update:
 			return Promise.resolve(updateYourBlocklist(message.url))
-		case 'unblock':
+		case sesbConstants.actions.unblock:
 			return Promise.resolve(unblock(message.url, message.isSub))
-		case 'update-multiple':
+		case sesbConstants.actions.updateMultiple:
 			optionsPageBlocklistUpdated = false
 			doWithWorker(function(){updateMultiple(message.url)})
 			break
-		case 'whitelist-multiple':
+		case sesbConstants.actions.whitelistMultiple:
 			optionsPageWhitelistUpdated = false
 			doWithWorker(function(){whitelistMultiple(message.url)})
 			break
-		case 'load-your-blocklist':
+		case sesbConstants.actions.loadYourBlocklist:
 			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
-		case 'load-whitelist':
+		case sesbConstants.actions.loadWhitelist:
 			return Promise.resolve(Object.getOwnPropertyNames(whitelist).sort())
-		case 'update-spam-lists':
+		case sesbConstants.actions.updateSpamLists:
 			needsUpdate = true
 			updateLists()
 			break
-		case 'remove':
+		case sesbConstants.actions.remove:
 			removeFromYourBlocklist(message.url)
 			break
-		case 'remove-from-whitelist':
+		case sesbConstants.actions.removeFromWhitelist:
 			removeFromWhitelist(message.url)
 			break
-		case 'remove-from-whitelist-and-update':
+		case sesbConstants.actions.removeFromWhitelistAndUpdate:
 			removeFromWhitelist(message.url)
 			updateYourBlocklist(message.url)
 			break
-		case 'clear-blocklist':
+		case sesbConstants.actions.clearBlocklist:
 			clearBlocklist()
 			break
-		case 'reload-settings':
+		case sesbConstants.actions.reloadSettings:
 			loadSettings()
 			break
-		case 'check-options-blocklist-updated':
+		case sesbConstants.actions.checkOptionsBlocklistUpdated:
 			if (optionsPageBlocklistUpdated === true) {
 				optionsPageBlocklistUpdated = false
 				return Promise.resolve(true)
 			}
 			return Promise.resolve(false)
-		case 'check-options-whitelist-updated':
+		case sesbConstants.actions.checkOptionsWhitelistUpdated:
 			if (optionsPageWhitelistUpdated === true) {
 				optionsPageWhitelistUpdated = false
 				return Promise.resolve(true)
@@ -208,16 +207,16 @@ function unblockWithWorker(url, isSub) {
 /*--- Automatic update ---*/
 
 function handleNullSettings(savedSettings) {
-	settings = savedSettings === undefined ? defaultSettings : savedSettings
+	settings = savedSettings === undefined ? sesbConstants.defaultSettings : savedSettings
 }
 
 function loadSettings() {
-	browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+	browser.storage.local.get(sesbConstants.storedResources.settings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
 async function loadYourBlocklist() {
-	const yourBlocklistJson = await browser.storage.local.get('sesbYourBlocklist').then((r) => r.sesbYourBlocklist)
-	const whitelistJson = await browser.storage.local.get('sesbWhitelist').then((r) => r.sesbWhitelist)
+	const yourBlocklistJson = await browser.storage.local.get(sesbConstants.storedResources.yourBlocklist).then((r) => r.sesbYourBlocklist)
+	const whitelistJson = await browser.storage.local.get(sesbConstants.storedResources.whitelist).then((r) => r.sesbWhitelist)
 	if (yourBlocklistJson) {
 		yourBlocklist = JSON.parse(yourBlocklistJson)
 	}
@@ -259,8 +258,8 @@ function retainSuffixList(text) {
 	for (let i = 0; i < sanitizedTextPrivate.length; i++) {
 		privateSuffixList[sanitizedTextPrivate[i]] = true
 	}
-	for (let i = 0; i < unlistedSuffixes.length; i++) {
-		suffixList[unlistedSuffixes[i]] = true
+	for (let i = 0; i < sesbConstants.unlistedSuffixes.length; i++) {
+		suffixList[sesbConstants.unlistedSuffixes[i]] = true
 	}
 	browser.storage.local.set({sesbSuffixList: JSON.stringify(suffixList)})
 	browser.storage.local.set({sesbPrivateSuffixList: JSON.stringify(privateSuffixList)})
@@ -307,10 +306,10 @@ function fetchSuffixList(tries) {
 }
 
 async function checkIfNeedsUpdate() {
-	const lastUpdate = await browser.storage.local.get('sesbLastUpdate').then((r) => r.sesbLastUpdate)
-	suffixList = await browser.storage.local.get('sesbSuffixList').then((r) => r.sesbSuffixList)
-	privateSuffixList = await browser.storage.local.get('sesbPrivateSuffixList').then((r) => r.sesbPrivateSuffixList)
-	defaultBlocklist = await browser.storage.local.get('sesbBlocklist').then((r) => r.sesbBlocklist)
+	const lastUpdate = await browser.storage.local.get(sesbConstants.storedVars.lastUpdate).then((r) => r.sesbLastUpdate)
+	suffixList = await browser.storage.local.get(sesbConstants.storedVars.suffixList).then((r) => r.sesbSuffixList)
+	privateSuffixList = await browser.storage.local.get(sesbConstants.storedVars.privateSuffixList).then((r) => r.sesbPrivateSuffixList)
+	defaultBlocklist = await browser.storage.local.get(sesbConstants.storedVars.blocklist).then((r) => r.sesbBlocklist)
 	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || privateSuffixList === undefined || (Date.now() - lastUpdate > 86400)) {
 		needsUpdate = true
 	}
@@ -449,7 +448,7 @@ function sanitizeDomains(domains, skipRegex) {
 		if (skipRegex === true) {
 			sanitizedDomains.push(domain.toLowerCase())
 		} else {
-			checkedDomain = reg.exec(domain)
+			let checkedDomain = reg.exec(domain)
 			if (checkedDomain !== null) {
 				sanitizedDomains.push(checkedDomain[0].toLowerCase())
 			}

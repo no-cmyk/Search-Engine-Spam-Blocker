@@ -64,11 +64,6 @@ function unblock(url, isSub) {
 	chrome.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}, function(resp){findAndUnblock(resp, url)})
 }
 
-function fixHeight(elem, div) {
-	elem.parentElement.parentElement.classList.add(sesbConstants.css.fixHeight)
-	elem.prepend(div)
-}
-
 function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
@@ -97,7 +92,7 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixHeight(elem, div)
+	elem.prepend(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
@@ -125,11 +120,11 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixHeight(elem, div)
+	elem.prepend(div)
 }
 
 function getUrl(e) {
-	return e.getElementsByTagName('a')[e.classList.contains(textResult) ? 0 : 1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	return e.getElementsByTagName('a')[0].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

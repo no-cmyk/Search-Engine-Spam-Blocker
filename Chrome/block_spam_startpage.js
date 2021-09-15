@@ -70,12 +70,6 @@ function unblock(url, isSub, event) {
 	chrome.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}, function(resp){findAndUnblock(resp, url)})
 }
 
-function appendBeforeDetails(elem, div) {
-	const details = elem.querySelector('.details')
-	details.classList.add(sesbConstants.css.fixImageSize)
-	elem.insertBefore(div, details)
-}
-
 function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
@@ -104,14 +98,14 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : appendBeforeDetails(elem, div)
+	elem.prepend(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Unblock ' + url + '?'
-	button.addEventListener('click', elem.classList.contains(textResult) ? function(){unblock(url, isSub)} : function(event){unblock(url, isSub, event)})
+	button.addEventListener('click', function(){unblock(url, isSub)})
 	div.appendChild(button)
 }
 
@@ -132,13 +126,11 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : appendBeforeDetails(elem, div)
+	elem.prepend(div)
 }
 
 function getUrl(e) {
-	return e.classList.contains(textResult) ?
-		e.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-		: e.querySelector('.site').innerText.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	return e.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

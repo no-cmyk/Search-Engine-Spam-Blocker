@@ -157,4 +157,3 @@ async function removeElement(e) {
 	}
 	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
 }
-

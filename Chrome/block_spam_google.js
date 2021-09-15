@@ -1,8 +1,8 @@
 'use strict'
 const textResult = 'g'
 const imgResult = 'isv-r'
-const imgDone = {}
 let updated
+const imgDone = {}
 const mo = new MutationObserver(onMutation)
 mo.observe(document, {subtree: true, childList: true})
 document.addEventListener('load', function(){setInterval(redo, 500)}, true)
@@ -11,6 +11,13 @@ function redo() {
 	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
 		if (!n.classList.contains(sesbConstants.css.fixHeight)) {
 			handleElement(n)
+		} else if (n.getElementsByClassName(sesbConstants.css.blockDiv).length > 1 || n.getElementsByClassName(sesbConstants.css.unblockDiv).length > 1) {
+			for (const b of n.getElementsByClassName(sesbConstants.css.blockDiv)) {
+				b.remove()
+			}
+			for (const b of n.getElementsByClassName(sesbConstants.css.unblockDiv)) {
+				b.remove()
+			}
 		}
 	}
 }
@@ -124,7 +131,6 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	if (domain !== undefined) {
 		createUnblockButton(domain, div, elem, false)
 	}
-
 	if (privateDomain !== undefined && privateDomain !== url) {
 		createUnblockButton(privateDomain, div, elem, false)
 	}
@@ -144,7 +150,7 @@ function removeElement(e) {
 	if (url === '' || url === undefined) {
 		return
 	}
-	chrome.runtime.sendMessage({action: 'check', url: url}, function(response){
+	chrome.runtime.sendMessage({action: sesbConstants.actions.check, url: url}, function(response){
 		if (response === undefined) {
 			return
 		}

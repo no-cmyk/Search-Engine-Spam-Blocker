@@ -26,7 +26,10 @@ function onMutation(mutations) {
 }
 
 function handleElement(n) {
-	if (n.classList.contains(textResult) && !n.classList.contains('mnr-c') && !n.classList.contains('g-blk')) {
+	if (n.classList.contains(textResult)
+		&& n.getElementsByClassName(textResult).length === 0
+		&& !n.classList.contains('mnr-c')
+		&& !n.classList.contains('g-blk')) {
 		removeElement(n)
 	} else if (n.classList.contains(imgResult) && !imgDone[n.getAttribute('data-id')]) {
 		removeElement(n)

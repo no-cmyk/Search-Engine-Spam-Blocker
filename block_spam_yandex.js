@@ -1,24 +1,12 @@
 'use strict'
 const textResult = 'serp-item'
 let updated
-const mo = new MutationObserver(onMutation)
-mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', function(){setInterval(redo, 500)}, true)
+document.addEventListener('DOMContentLoaded', redo, true)
 
 function redo() {
 	for (const n of document.querySelectorAll('.' + textResult)) {
-		if (n.tagName === 'LI' && !n.classList.contains(sesbConstants.css.fixHeight) && n.getAttribute('data-fast-name') === null) {
+		if (!n.classList.contains(sesbConstants.css.fixHeight) && n.getAttribute('data-fast-name') === null) {
 			removeElement(n)
-		}
-	}
-}
-
-function onMutation(mutations) {
-	for (const {addedNodes} of mutations) {
-		for (const n of addedNodes) {
-			if (n.tagName === 'LI' && n.classList.contains(textResult) && n.getAttribute('data-fast-name') === null) {
-				removeElement(n)
-			}
 		}
 	}
 }

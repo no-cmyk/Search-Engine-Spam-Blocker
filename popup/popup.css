@@ -27,6 +27,11 @@ h3 {
 	text-align: center;
 }
 
+span {
+	display: inline-flex;
+	margin-left: 4px;
+}
+
 .settings {
 	text-align: left;
 }

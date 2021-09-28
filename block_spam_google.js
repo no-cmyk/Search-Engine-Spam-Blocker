@@ -3,37 +3,25 @@ const textResult = 'g'
 const imgResult = 'isv-r'
 let updated
 const imgDone = {}
-const mo = new MutationObserver(onMutation)
-mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', function(){setInterval(redo, 500)}, true)
+document.addEventListener('DOMContentLoaded', initial, true)
+document.addEventListener('load', redo, true)
 
 function redo() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (!n.classList.contains(sesbConstants.css.fixHeight)) {
-			handleElement(n)
+	for (const n of document.querySelectorAll('.' + imgResult)) {
+		if (!imgDone[n.getAttribute('data-id')]) {
+			removeElement(n)
+			imgDone[n.getAttribute('data-id')] = true
 		}
 	}
 }
 
-function onMutation(mutations) {
-	for (const {addedNodes} of mutations) {
-		for (const n of addedNodes) {
-			if (n.tagName === 'DIV') {
-				handleElement(n)
-			}
+function initial() {
+	for (const n of document.querySelectorAll('.' + textResult)) {
+		if (n.getElementsByClassName(textResult).length === 0
+			&& !n.classList.contains('mnr-c')
+			&& !n.classList.contains('g-blk')) {
+			removeElement(n)
 		}
-	}
-}
-
-function handleElement(n) {
-	if (n.classList.contains(textResult)
-		&& n.getElementsByClassName(textResult).length === 0
-		&& !n.classList.contains('mnr-c')
-		&& !n.classList.contains('g-blk')) {
-		removeElement(n)
-	} else if (n.classList.contains(imgResult) && !imgDone[n.getAttribute('data-id')]) {
-		removeElement(n)
-		imgDone[n.getAttribute('data-id')] = true
 	}
 }
 

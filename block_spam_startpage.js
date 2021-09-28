@@ -1,27 +1,12 @@
 'use strict'
-const textResult = 'w-gl__result'
+const textResult = 'w-gl__result__main'
 const textResultAd = 'z_'
-const imgResult = 'image-container'
 let updated
-const mo = new MutationObserver(onMutation)
-mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', function(){setInterval(redo, 500)}, true)
+document.addEventListener('DOMContentLoaded', redo, true)
 
 function redo() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultAd)) {
-		if (!n.classList.contains(sesbConstants.css.fixHeight)) {
-			removeElement(n)
-		}
-	}
-}
-
-function onMutation(mutations) {
-	for (const {addedNodes} of mutations) {
-		for (const n of addedNodes) {
-			if (n.tagName === 'DIV' && (n.classList.contains(textResult) || n.classList.contains(imgResult) || n.classList.contains(textResultAd))) {
-				removeElement(n)
-			}
-		}
+	for (const n of document.querySelectorAll('.' + textResult + '\,.' + textResultAd)) {
+		removeElement(n)
 	}
 }
 
@@ -33,7 +18,7 @@ function findAndBlock(response, url) {
 			return
 		}
 	}
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultAd)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.add(sesbConstants.css.hidden)
 			if (response.showBlocked === 1) {
@@ -47,7 +32,7 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultAd)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.classList.remove(sesbConstants.css.hidden, sesbConstants.css.blockedShow)
 			if (response.showBlocked === 1) {
@@ -72,17 +57,11 @@ function unblock(url, isSub, event) {
 	browser.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
 }
 
-function appendBeforeDetails(elem, div) {
-	const details = elem.querySelector('.details')
-	details.classList.add(sesbConstants.css.fixImageSize)
-	elem.insertBefore(div, details)
-}
-
 function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Block ' + url + '?'
-	button.addEventListener('click', elem.classList.contains(textResult) ? function(){updateYourBlocklist(url)} : function(event){updateYourBlocklist(url, event)})
+	button.addEventListener('click', function(){updateYourBlocklist(url)})
 	div.appendChild(button)
 }
 
@@ -106,14 +85,14 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 		createBlockButton(url, div, elem)
 	}
 	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : appendBeforeDetails(elem, div)
+	elem.prepend(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Unblock ' + url + '?'
-	button.addEventListener('click', elem.classList.contains(textResult) ? function(){unblock(url, isSub)} : function(event){unblock(url, isSub, event)})
+	button.addEventListener('click', function(){unblock(url, isSub)})
 	div.appendChild(button)
 }
 
@@ -134,13 +113,11 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 		createUnblockButton(url, div, elem, true)
 	}
 	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : appendBeforeDetails(elem, div)
+	elem.prepend(div)
 }
 
-function getUrl(e) {
-	return e.classList.contains(textResult) ?
-		e.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-		: e.querySelector('.site').innerText.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+function getUrl(elem) {
+	return elem.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

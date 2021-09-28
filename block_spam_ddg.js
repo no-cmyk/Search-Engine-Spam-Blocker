@@ -3,34 +3,18 @@ const textResult = 'result--url-above-snippet'
 const imgResult = 'tile--img'
 let updated
 const done = {}
-const mo = new MutationObserver(onMutation)
-mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', function(){setInterval(redo, 500)}, true)
+document.addEventListener('load', redo, true)
 
 function redo() {
 	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (!n.classList.contains(sesbConstants.css.fixHeight)) {
-			handleElement(n)
+		if (n.classList.contains(textResult) && !done[n.getAttribute('id')]) {
+			done[n.getAttribute('id')] = true
+			removeElement(n)
+		} else if (n.classList.contains(imgResult) && !done[n.getAttribute('id')]) {
+			n.setAttribute('id', 'sesb' + Math.random())
+			done[n.getAttribute('id')] = true
+			removeElement(n)
 		}
-	}
-}
-
-function onMutation(mutations) {
-	for (const {addedNodes} of mutations) {
-		for (const n of addedNodes) {
-			handleElement(n)
-		}
-	}
-}
-
-function handleElement(n) {
-	if (n.tagName === 'DIV' && n.classList.contains(textResult) && !done[n.getAttribute('id')]) {
-		done[n.getAttribute('id')] = true
-		removeElement(n)
-	} else if (n.tagName === 'DIV' && n.classList.contains(imgResult) && !done[n.getAttribute('id')]) {
-		n.setAttribute('id', 'sesb' + Math.random())
-		done[n.getAttribute('id')] = true
-		removeElement(n)
 	}
 }
 

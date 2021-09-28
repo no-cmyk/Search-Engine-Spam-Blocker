@@ -4,29 +4,23 @@ const imgResult = 'imgpt'
 let done = {}
 let imgDone = {}
 let updated
-const mo = new MutationObserver(onMutation)
-mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', function(){setInterval(redo, 500)}, true)
+document.addEventListener('DOMContentLoaded', initial, true)
+document.addEventListener('load', redo, true)
 
 function redo() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if ((n.classList.contains(textResult) && !n.classList.contains(sesbConstants.css.fixHeight) && !done[n.getAttribute('data-bm')]) || (!n.classList.contains(sesbConstants.css.fixHeight) && !imgDone[n.getAttribute('data-iid')])) {
+	for (const n of document.querySelectorAll('.' + imgResult)) {
+		if (!n.classList.contains(sesbConstants.css.fixHeight) && !imgDone[n.getAttribute('data-iid')]) {
 			removeElement(n)
 		}
 	}
 }
 
-function onMutation(mutations) {
-	for (const {addedNodes} of mutations) {
-		for (const n of addedNodes) {
-			if (n.tagName === 'LI' && n.classList.contains(textResult)) {
-				done[n.getAttribute('data-bm')] == true
-				removeElement(n)
-			} else if (n.tagName === 'DIV' && n.classList.contains(imgResult)) {
-				imgDone[n.getAttribute('data-iid')] == true
-				removeElement(n)
-			}
+function initial() {
+	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+		if (n.classList.contains(imgResult)) {
+			imgDone[n.getAttribute('data-iid')] == true
 		}
+		removeElement(n)
 	}
 }
 

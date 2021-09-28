@@ -1,24 +1,12 @@
 'use strict'
 const textResult = 'algo'
 let updated
-const mo = new MutationObserver(onMutation)
-mo.observe(document, {subtree: true, childList: true})
-document.addEventListener('load', function(){setInterval(redo, 500)}, true)
+document.addEventListener('DOMContentLoaded', redo, true)
 
 function redo() {
 	for (const n of document.querySelectorAll('.' + textResult)) {
 		if (!n.classList.contains(sesbConstants.css.fixHeight)) {
 			removeElement(n)
-		}
-	}
-}
-
-function onMutation(mutations) {
-	for (const {addedNodes} of mutations) {
-		for (const n of addedNodes) {
-			if (n.tagName === 'DIV' && n.matches('.' + textResult)) {
-				removeElement(n)
-			}
 		}
 	}
 }
@@ -124,12 +112,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 }
 
 function getUrl(e) {
-	let urlSpan = e.getElementsByTagName('span')[0]
-	if (urlSpan.innerText.includes('›')) {
-		return urlSpan.firstChild.data.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-	} else {
-		return urlSpan.innerText.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-	}
+	return e.getElementsByTagName('span')[0].innerText.replace(/^http.*:\/\/|\/.*$|:\d+|\s›.*/g, '')
 }
 
 async function removeElement(e) {

@@ -1,10 +1,9 @@
 body {
 	font-family: sans-serif;
-	padding: 10px;
+	padding: 5px;
 	width: 195px;
 	text-align: center;
 	cursor: default !important;
-	line-height: 20px;
 }
 
 button {
@@ -24,12 +23,16 @@ button:hover {
 h3 {
 	margin: 0;
 	color: darkorange;
-	text-align: center;
 }
 
 span {
 	display: inline-flex;
 	margin-left: 4px;
+	max-width: 84%;
+}
+
+img {
+	width: 48px;
 }
 
 .settings {
@@ -44,7 +47,6 @@ span {
 
 .switch {
 	display: inline-block;
-	height: 0.8em;
 	width: 1.6em;
 	background: bisque;
 	border-radius: 1em;

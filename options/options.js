@@ -29,8 +29,8 @@ function handleClicks(click) {
 			break
 		case sesbConstants.html.updateSpamLists:
 			browser.runtime.sendMessage({action: sesbConstants.actions.updateSpamLists})
-			resultOkElem.classList.remove('hidden')
-			setTimeout(function(){resultOkElem.classList.add('hidden')}, 3000)
+			resultOkElem.style.display = 'initial'
+			setTimeout(function(){resultOkElem.style.display = 'none'}, 3000)
 			break
 		case sesbConstants.html.export:
 			exportElem.parentElement.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))

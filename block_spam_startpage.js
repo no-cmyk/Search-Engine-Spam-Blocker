@@ -1,11 +1,12 @@
 'use strict'
 const textResult = 'w-gl__result__main'
 const textResultAd = 'z_'
+const imgResult = 'image-container'
 let updated
 document.addEventListener('DOMContentLoaded', redo, true)
 
 function redo() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + textResultAd)) {
+	for (const n of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
 		removeElement(n)
 	}
 }
@@ -18,7 +19,7 @@ function findAndBlock(response, url) {
 			return
 		}
 	}
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.add(sesbConstants.css.hidden)
 			if (response.showBlocked === 1) {
@@ -32,7 +33,7 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.classList.remove(sesbConstants.css.hidden, sesbConstants.css.blockedShow)
 			if (response.showBlocked === 1) {
@@ -44,16 +45,10 @@ function findAndUnblock(response, url) {
 }
 
 function updateYourBlocklist(url, event) {
-	if (event) {
-		event.stopPropagation()
-	}
 	browser.runtime.sendMessage({action: sesbConstants.actions.update, url: url}).then((resp) => findAndBlock(resp, url))
 }
 
 function unblock(url, isSub, event) {
-	if (event) {
-		event.stopPropagation()
-	}
 	browser.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
 }
 
@@ -117,7 +112,9 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 }
 
 function getUrl(elem) {
-	return elem.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	return elem.classList.contains(imgResult) ?
+	elem.querySelector('.image-quick-details').lastChild.lastChild.data.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	: elem.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

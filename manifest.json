@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "1.4.6.4",
+	"version": "1.4.6.5",
 	"description": "Blocks spam from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/search-engine-spam-blocker",
 
@@ -29,25 +29,25 @@
 			"css": ["sesb.css"]
 		},
 		{
-			"matches": ["*://*.bing.com/*"],
+			"matches": ["*://www.bing.com/*"],
 			"run_at": "document_start",
 			"js": ["block_spam_bing.js", "constants.js"],
 			"css": ["sesb.css"]
 		},
 		{
-			"matches": ["*://*.startpage.com/*"],
+			"matches": ["*://www.startpage.com/*"],
 			"run_at": "document_start",
 			"js": ["block_spam_startpage.js", "constants.js"],
 			"css": ["sesb.css"]
 		},
 		{
-			"matches": ["*://*.search.yahoo.com/*"],
+			"matches": ["*://search.yahoo.com/*"],
 			"run_at": "document_start",
 			"js": ["block_spam_yahoo.js", "constants.js"],
 			"css": ["sesb.css"]
 		},
 		{
-			"matches": ["*://*.yandex.com/search/*","*://*.yandex.ru/search/*"],
+			"matches": ["*://*.yandex.com/search/*","*://*.yandex.ru/search/*","*://*.yandex.com/images/*","*://*.yandex.ru/images/*"],
 			"run_at": "document_start",
 			"js": ["block_spam_yandex.js", "constants.js"],
 			"css": ["sesb.css"]

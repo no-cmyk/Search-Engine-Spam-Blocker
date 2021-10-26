@@ -1,10 +1,12 @@
 body {
 	font-family: sans-serif;
+	color: darkorange;
 }
 
 img {
-	max-height: 48px;
-	max-width: 48px;
+	width: 48px;
+	padding-left: 15px;
+	padding-top: 15px;
 }
 
 button {
@@ -37,7 +39,7 @@ ul {
 	width: 550px;
 	max-height: 200px;
 	min-height: 60px;
-	background-color: floralwhite;
+	background-color: antiquewhite;
 	overflow: auto;
 	cursor: default !important;
 }
@@ -59,47 +61,27 @@ li span:hover {
 }
 
 textarea {
-	width: 550px;
+	width: 450px;
 	font-family: sans-serif;
-	margin-bottom: 15px;
+	margin: -5px 0 15px 0;
 }
 
 .section {
 	padding: 15px;
 }
 
-.title {
-	margin-bottom: -4px;
+.subsection {
+	padding: 0 0 15px 45px;
 }
 
-.content {
-	padding-left: 30px;
-}
-
-h3 {
+h3, h4, h5 {
 	margin: 0;
-	color: darkorange;
-}
-
-h5 {
-	margin: 0;
-	color: darkorange;
-	padding-left: 15px;
-}
-
-img {
-	padding-left: 15px;
-	padding-top: 15px;
-	margin-bottom: -10px;
-}
-
-.hidden {
-	display: none;
 }
 
 .result-ok {
 	color: green;
 	font-weight: bold;
+	display: none;
 }
 
 :focus {

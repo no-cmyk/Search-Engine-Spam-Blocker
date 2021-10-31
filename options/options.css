@@ -34,6 +34,7 @@ button:hover {
 }
 
 ul {
+	color: black;
 	padding: 2px;
 	list-style-type: none;
 	width: 550px;

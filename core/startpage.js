@@ -1,21 +1,16 @@
 'use strict'
-const textResult = 'result--url-above-snippet'
-const imgResult = 'tile--img'
+const textResult = 'w-gl__result__main'
+const textResultAd = 'z_'
+const imgResult = 'image-container'
 let updated
-const done = {}
-document.addEventListener('load', redo, true)
+document.addEventListener('DOMContentLoaded', redo, true)
 
 function redo() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (n.classList.contains(textResult) && !done[n.getAttribute('id')]) {
-			done[n.getAttribute('id')] = true
-			removeElement(n)
-		} else if (n.classList.contains(imgResult) && !done[n.getAttribute('id')]) {
-			n.setAttribute('id', 'sesb' + Math.random())
-			done[n.getAttribute('id')] = true
-			removeElement(n)
+	setTimeout(function () {
+		for (const n of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
+		removeElement(n)
 		}
-	}
+	}, 500)
 }
 
 function findAndBlock(response, url) {
@@ -26,21 +21,21 @@ function findAndBlock(response, url) {
 			return
 		}
 	}
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.add(sesbConstants.css.hidden)
 			if (response.showBlocked === 1) {
 				elem.classList.add(sesbConstants.css.blockedShow)
 				elem.getElementsByClassName(sesbConstants.css.unblockDiv)[0].classList.remove(sesbConstants.css.hidden)
 			} else {
-				elem.classList.add(sesbHidden)
+				elem.classList.add(sesbConstants.css.hidden)
 			}
 		}
 	}
 }
 
 function findAndUnblock(response, url) {
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.classList.remove(sesbConstants.css.hidden, sesbConstants.css.blockedShow)
 			if (response.showBlocked === 1) {
@@ -51,13 +46,17 @@ function findAndUnblock(response, url) {
 	}
 }
 
-function updateYourBlocklist(event, url) {
-	event.stopPropagation()
+function updateYourBlocklist(url, event) {
+	if (event) {
+		event.stopPropagation()
+	}
 	browser.runtime.sendMessage({action: sesbConstants.actions.update, url: url}).then((resp) => findAndBlock(resp, url))
 }
 
-function unblock(event, url, isSub) {
-	event.stopPropagation()
+function unblock(url, isSub, event) {
+	if (event) {
+		event.stopPropagation()
+	}
 	browser.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
 }
 
@@ -65,7 +64,7 @@ function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Block ' + url + '?'
-	button.addEventListener('click', function(event){updateYourBlocklist(event, url)})
+	button.addEventListener('click', function(event){updateYourBlocklist(url, event)})
 	div.appendChild(button)
 }
 
@@ -88,25 +87,15 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 	if (url !== domain) {
 		createBlockButton(url, div, elem)
 	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixDimensions(elem, div)
+	elem.prepend(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
 	const button = document.createElement('button')
 	button.innerText = url
 	button.title = 'Unblock ' + url + '?'
-	button.addEventListener('click', function(event){unblock(event, url, isSub)})
+	button.addEventListener('click', function(event){unblock(url, isSub, event)})
 	div.appendChild(button)
-}
-
-function fixDimensions(elem, div) {
-	const dim = elem.querySelectorAll('.tile--img__dimensions')[1]
-	const sub = elem.querySelector('.tile--img__sub')
-	dim.remove()
-	elem.insertBefore(dim, sub)
-	dim.classList.add(sesbConstants.css.fixImageSize)
-	elem.appendChild(div)
 }
 
 function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemove) {
@@ -125,14 +114,13 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	if (url !== domain) {
 		createUnblockButton(url, div, elem, true)
 	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixDimensions(elem, div)
+	elem.prepend(div)
 }
 
-function getUrl(e) {
-	return e.classList.contains(textResult) ?
-		e.getAttribute('data-domain').replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-		: e.querySelector('.tile--img__sub').href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+function getUrl(elem) {
+	return elem.classList.contains(imgResult) ?
+	elem.querySelector('.image-quick-details').lastChild.lastChild.data.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	: elem.getElementsByTagName('a')[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

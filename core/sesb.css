@@ -48,7 +48,7 @@
 }
 
 .sesb-hidden {
-	display: none;
+	display: none !important;
 }
 
 .sesb-fix-height {

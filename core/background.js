@@ -7,7 +7,7 @@ let optionsPageBlocklistUpdated = true
 let optionsPageWhitelistUpdated = true
 let yourBlocklist = {}
 let whitelist = {}
-const workerUrl = browser.runtime.getURL('worker.js')
+const workerUrl = browser.runtime.getURL('core/worker.js')
 let settings
 browser.runtime.onMessage.addListener(handleMessages)
 

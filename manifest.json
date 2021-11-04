@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "1.4.7",
+	"version": "1.4.7.1",
 	"description": "Block sites from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/search-engine-spam-blocker",
 
@@ -23,7 +23,7 @@
 			"css": ["core/sesb.css"]
 		},
 		{
-			"matches": ["*://*.duckduckgo.com/*"],
+			"matches": ["*://duckduckgo.com/*"],
 			"run_at": "document_start",
 			"js": ["core/duckduckgo.js", "core/constants.js"],
 			"css": ["core/sesb.css"]

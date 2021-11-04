@@ -7,10 +7,7 @@ document.addEventListener('load', redo, true)
 
 function redo() {
 	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (n.classList.contains(textResult) && !done[n.getAttribute('sesb-id')]) {
-			done[n.getAttribute('sesb-id')] = true
-			removeElement(n)
-		} else if (n.classList.contains(imgResult) && !done[n.getAttribute('sesb-id')]) {
+		if (!done[n.getAttribute('sesb-id')]) {
 			n.setAttribute('sesb-id', 'sesb' + Math.random())
 			done[n.getAttribute('sesb-id')] = true
 			removeElement(n)

@@ -89,8 +89,7 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 	if (url !== domain) {
 		createBlockButton(url, div, elem)
 	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.prepend(div)
+	elem.querySelector('[class^="WebResult-module__subContainer"],[class^="Card-module__Card___"]').prepend(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
@@ -117,8 +116,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	if (url !== domain) {
 		createUnblockButton(url, div, elem, true)
 	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.prepend(div)
+	elem.querySelector('[class^="WebResult-module__subContainer"],[class^="Card-module__Card___"]').prepend(div)
 }
 
 function getUrl(e) {

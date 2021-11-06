@@ -1,5 +1,6 @@
 'use strict'
 const textResult = 'g'
+const textResultMobile = 'xpd'
 const imgResult = 'isv-r'
 let updated
 const imgDone = {}
@@ -8,16 +9,17 @@ document.addEventListener('load', redo, true)
 
 function redo() {
 	for (const n of document.querySelectorAll('.' + imgResult)) {
-		if (!imgDone[n.getAttribute('data-id')]) {
+		if (!imgDone[n.getAttribute('sesb-id')]) {
+			n.setAttribute('sesb-id', 'sesb' + Math.random())
+			imgDone[n.getAttribute('sesb-id')] = true
 			removeElement(n)
-			imgDone[n.getAttribute('data-id')] = true
 		}
 	}
 }
 
 function initial() {
-	for (const n of document.querySelectorAll('.' + textResult)) {
-		if (n.getElementsByClassName(textResult).length === 0
+	for (const n of document.querySelectorAll('.' + textResult + '\,.' + textResultMobile)) {
+		if (n.getElementsByClassName(textResult).length === 0 && n.getElementsByClassName(textResultMobile).length === 0
 			&& !n.classList.contains('mnr-c')
 			&& !n.classList.contains('g-blk')) {
 			removeElement(n)
@@ -33,7 +35,7 @@ function findAndBlock(response, url) {
 			return
 		}
 	}
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultMobile)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.add(sesbConstants.css.hidden)
 			if (response.showBlocked === 1) {
@@ -47,7 +49,7 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultMobile)) {
 		if (getUrl(elem).endsWith(url)) {
 			elem.classList.remove(sesbConstants.css.hidden, sesbConstants.css.blockedShow)
 			if (response.showBlocked === 1) {
@@ -126,7 +128,7 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 }
 
 function getUrl(e) {
-	return e.getElementsByTagName('a')[e.classList.contains(textResult) ? 0 : 1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	return e.getElementsByTagName('a')[e.classList.contains(textResult) || e.classList.contains(textResultMobile) ? 0 : 1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
 }
 
 async function removeElement(e) {

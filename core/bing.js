@@ -1,26 +1,17 @@
 'use strict'
 const textResult = 'b_algo'
 const imgResult = 'imgpt'
-let done = {}
-let imgDone = {}
+const done = {}
 let updated
-document.addEventListener('DOMContentLoaded', initial, true)
 document.addEventListener('load', redo, true)
 
 function redo() {
-	for (const n of document.querySelectorAll('.' + imgResult)) {
-		if (!n.classList.contains(sesbConstants.css.fixHeight) && !imgDone[n.getAttribute('data-iid')]) {
+	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+		if (!done[n.getAttribute('sesb-id')]) {
+			n.setAttribute('sesb-id', 'sesb' + Math.random())
+			done[n.getAttribute('sesb-id')] = true
 			removeElement(n)
 		}
-	}
-}
-
-function initial() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (n.classList.contains(imgResult)) {
-			imgDone[n.getAttribute('data-iid')] == true
-		}
-		removeElement(n)
 	}
 }
 
@@ -65,11 +56,6 @@ function unblock(url, isSub) {
 	browser.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
 }
 
-function fixHeight(elem, div) {
-	elem.parentElement.parentElement.classList.add(sesbConstants.css.fixHeight)
-	elem.prepend(div)
-}
-
 function createBlockButton(url, div, elem) {
 	const button = document.createElement('button')
 	button.innerText = url
@@ -97,8 +83,7 @@ function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBloc
 	if (url !== domain) {
 		createBlockButton(url, div, elem)
 	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixHeight(elem, div)
+	elem.prepend(div)
 }
 
 function createUnblockButton(url, div, elem, isSub) {
@@ -125,12 +110,19 @@ function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemo
 	if (url !== domain) {
 		createUnblockButton(url, div, elem, true)
 	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixHeight(elem, div)
+	elem.prepend(div)
 }
 
 function getUrl(e) {
-	return e.getElementsByTagName('a')[e.classList.contains(textResult) ? 0 : 1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	let links = e.getElementsByTagName('a')
+	let href
+	if (e.classList.contains(textResult)) {
+		return links[0].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	} else if (links.length > 1) {
+		return links[1].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	} else {
+		return e.nextElementSibling.getElementsByTagName('a')[0].href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
+	}
 }
 
 async function removeElement(e) {

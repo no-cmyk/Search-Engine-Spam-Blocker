@@ -8,7 +8,7 @@ let optionsPageWhitelistUpdated = true
 let yourBlocklist = {}
 let whitelist = {}
 const workerUrl = browser.runtime.getURL('core/worker.js')
-let settings
+let activeSettings
 browser.runtime.onMessage.addListener(handleMessages)
 
 function doWithWorker(onMessageFunction) {
@@ -17,58 +17,61 @@ function doWithWorker(onMessageFunction) {
 	worker.postMessage('hello')
 }
 
-function handleMessages(message) {
+function handleMessages(message, sender) {
 	switch (message.action) {
-		case sesbConstants.actions.check:
+		case actions.check:
 			return Promise.resolve(checkUrl(message.url))
-		case sesbConstants.actions.update:
+		case actions.update:
 			return Promise.resolve(updateYourBlocklist(message.url))
-		case sesbConstants.actions.unblock:
+		case actions.unblock:
 			return Promise.resolve(unblock(message.url, message.isSub))
-		case sesbConstants.actions.updateMultiple:
+		case actions.updateMultiple:
 			optionsPageBlocklistUpdated = false
 			doWithWorker(function(){updateMultiple(message.url)})
 			break
-		case sesbConstants.actions.whitelistMultiple:
+		case actions.whitelistMultiple:
 			optionsPageWhitelistUpdated = false
 			doWithWorker(function(){whitelistMultiple(message.url)})
 			break
-		case sesbConstants.actions.loadYourBlocklist:
+		case actions.loadYourBlocklist:
 			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
-		case sesbConstants.actions.loadWhitelist:
+		case actions.loadWhitelist:
 			return Promise.resolve(Object.getOwnPropertyNames(whitelist).sort())
-		case sesbConstants.actions.updateSpamLists:
+		case actions.updateSpamLists:
 			needsUpdate = true
 			updateLists()
 			break
-		case sesbConstants.actions.remove:
+		case actions.remove:
 			removeFromYourBlocklist(message.url)
 			break
-		case sesbConstants.actions.removeFromWhitelist:
+		case actions.removeFromWhitelist:
 			removeFromWhitelist(message.url)
 			break
-		case sesbConstants.actions.removeFromWhitelistAndUpdate:
+		case actions.removeFromWhitelistAndUpdate:
 			removeFromWhitelist(message.url)
 			updateYourBlocklist(message.url)
 			break
-		case sesbConstants.actions.clearBlocklist:
+		case actions.clearBlocklist:
 			clearBlocklist()
 			break
-		case sesbConstants.actions.reloadSettings:
+		case actions.reloadSettings:
 			loadSettings()
 			break
-		case sesbConstants.actions.checkOptionsBlocklistUpdated:
+		case actions.checkOptionsBlocklistUpdated:
 			if (optionsPageBlocklistUpdated === true) {
 				optionsPageBlocklistUpdated = false
 				return Promise.resolve(true)
 			}
 			return Promise.resolve(false)
-		case sesbConstants.actions.checkOptionsWhitelistUpdated:
+		case actions.checkOptionsWhitelistUpdated:
 			if (optionsPageWhitelistUpdated === true) {
 				optionsPageWhitelistUpdated = false
 				return Promise.resolve(true)
 			}
 			return Promise.resolve(false)
+		case actions.updateBadge:
+			browser.browserAction.setBadgeText({text: String(message.blockedNumber), tabId: sender.tab.id})
+			break
 		default:
 			break
 	}
@@ -77,7 +80,7 @@ function handleMessages(message) {
 /*--- Domain check ---*/
 
 function checkUrl(url) {
-	if (settings.enabled === 0) {
+	if (activeSettings.enabled === 0) {
 		return undefined
 	}
 	const urlArray = url.split('.')
@@ -100,11 +103,11 @@ function checkUrl(url) {
 	if (whitelist[noSubUrl] || whitelist[url] || (privateUrl !== undefined && whitelist[privateUrl])) {
 		toRemove = false
 	} else {
-		toRemove = settings.enableDefaultBlocklist === 1 ? 
+		toRemove = activeSettings.enableDefaultBlocklist === 1 ? 
 			(defaultBlocklist[noSubUrl] || defaultBlocklist[url] || yourBlocklist[noSubUrl] || yourBlocklist[url] || (privateUrl !== undefined && (defaultBlocklist[privateUrl] || yourBlocklist[privateUrl])))
 			: (yourBlocklist[noSubUrl] || yourBlocklist[url] || (privateUrl !== undefined && yourBlocklist[privateUrl]))
 	}
-	return {toRemove: toRemove, domain: noSubUrl, privateDomain: privateUrl, showBlocked: settings.showBlocked, showButtons: settings.showButtons}
+	return {toRemove: toRemove, domain: noSubUrl, privateDomain: privateUrl, showBlocked: activeSettings.showBlocked, showButtons: activeSettings.showButtons}
 }
 
 /*--- Your blocklist ---*/
@@ -127,7 +130,7 @@ function updateYourBlocklist(url) {
 		yourBlocklist[url] = true
 		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 	}
-	return {showBlocked: settings.showBlocked, whitelisted: whitelisted}
+	return {showBlocked: activeSettings.showBlocked, whitelisted: whitelisted}
 }
 
 function updateMultiple(domains) {
@@ -166,7 +169,7 @@ function whitelistMultiple(domains) {
 
 function unblock(url, isSub) {
 	doWithWorker(function(){unblockWithWorker(url, isSub)})
-	return {showBlocked: settings.showBlocked}
+	return {showBlocked: activeSettings.showBlocked, showButtons: activeSettings.showButtons}
 }
 
 function unblockWithWorker(url, isSub) {
@@ -207,16 +210,16 @@ function unblockWithWorker(url, isSub) {
 /*--- Automatic update ---*/
 
 function handleNullSettings(savedSettings) {
-	settings = savedSettings === undefined ? sesbConstants.defaultSettings : savedSettings
+	activeSettings = savedSettings === undefined ? defaultSettings : savedSettings
 }
 
 function loadSettings() {
-	browser.storage.local.get(sesbConstants.storedResources.settings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+	browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
 async function loadYourBlocklist() {
-	const yourBlocklistJson = await browser.storage.local.get(sesbConstants.storedResources.yourBlocklist).then((r) => r.sesbYourBlocklist)
-	const whitelistJson = await browser.storage.local.get(sesbConstants.storedResources.whitelist).then((r) => r.sesbWhitelist)
+	const yourBlocklistJson = await browser.storage.local.get(storedResources.yourBlocklist).then((r) => r.sesbYourBlocklist)
+	const whitelistJson = await browser.storage.local.get(storedResources.whitelist).then((r) => r.sesbWhitelist)
 	if (yourBlocklistJson) {
 		yourBlocklist = JSON.parse(yourBlocklistJson)
 	}
@@ -258,8 +261,8 @@ function retainSuffixList(text) {
 	for (let i = 0; i < sanitizedTextPrivate.length; i++) {
 		privateSuffixList[sanitizedTextPrivate[i]] = true
 	}
-	for (let i = 0; i < sesbConstants.unlistedSuffixes.length; i++) {
-		suffixList[sesbConstants.unlistedSuffixes[i]] = true
+	for (let i = 0; i < unlistedSuffixes.length; i++) {
+		suffixList[unlistedSuffixes[i]] = true
 	}
 	browser.storage.local.set({sesbSuffixList: JSON.stringify(suffixList)})
 	browser.storage.local.set({sesbPrivateSuffixList: JSON.stringify(privateSuffixList)})
@@ -306,10 +309,10 @@ function fetchSuffixList(tries) {
 }
 
 async function checkIfNeedsUpdate() {
-	const lastUpdate = await browser.storage.local.get(sesbConstants.storedVars.lastUpdate).then((r) => r.sesbLastUpdate)
-	suffixList = await browser.storage.local.get(sesbConstants.storedVars.suffixList).then((r) => r.sesbSuffixList)
-	privateSuffixList = await browser.storage.local.get(sesbConstants.storedVars.privateSuffixList).then((r) => r.sesbPrivateSuffixList)
-	defaultBlocklist = await browser.storage.local.get(sesbConstants.storedVars.blocklist).then((r) => r.sesbBlocklist)
+	const lastUpdate = await browser.storage.local.get(storedVars.lastUpdate).then((r) => r.sesbLastUpdate)
+	suffixList = await browser.storage.local.get(storedVars.suffixList).then((r) => r.sesbSuffixList)
+	privateSuffixList = await browser.storage.local.get(storedVars.privateSuffixList).then((r) => r.sesbPrivateSuffixList)
+	defaultBlocklist = await browser.storage.local.get(storedVars.blocklist).then((r) => r.sesbBlocklist)
 	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || privateSuffixList === undefined || (Date.now() - lastUpdate > 86400)) {
 		needsUpdate = true
 	}

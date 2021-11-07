@@ -1,18 +1,18 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "1.4.8",
+	"version": "1.4.8.1",
 	"description": "Block sites from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/search-engine-spam-blocker",
 
 	"icons": {
-		"16": "icons/sesb_icon_16.png",
-		"19": "icons/sesb_icon_19.png",
-		"24": "icons/sesb_icon_24.png",
-		"32": "icons/sesb_icon_32.png",
-		"40": "icons/sesb_icon_40.png",
-		"48": "icons/sesb_icon_48.png",
-		"96": "icons/sesb_icon_96.png"
+		"16": "icons/16.png",
+		"19": "icons/19.png",
+		"24": "icons/24.png",
+		"32": "icons/32.png",
+		"40": "icons/40.png",
+		"48": "icons/48.png",
+		"96": "icons/96.png"
 	},
 
 	"content_scripts": [
@@ -74,9 +74,9 @@
 
 	"browser_action": {
 		"default_icon": {
-			"16": "icons/sesb_icon_16.png",
-			"19": "icons/sesb_icon_19.png",
-			"32": "icons/sesb_icon_32.png"
+			"16": "icons/16.png",
+			"19": "icons/19.png",
+			"32": "icons/32.png"
 		},
 		"default_title": "Search Engine Spam Blocker",
 		"default_popup": "popup/popup.html"

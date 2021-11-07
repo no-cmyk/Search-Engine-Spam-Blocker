@@ -1,153 +1,161 @@
 'use strict'
+let updated
+let blockedNumber = 0
+const done = {}
 const textResult = 'result--url-above-snippet'
 const imgResult = 'tile--img'
-let updated
-const done = {}
-document.addEventListener('load', redo, true)
 
-function redo() {
-	for (const n of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (!done[n.getAttribute('sesb-id')]) {
-			n.setAttribute('sesb-id', 'sesb' + Math.random())
-			done[n.getAttribute('sesb-id')] = true
-			removeElement(n)
+/*---Scan search results---*/
+
+document.addEventListener('load', scanResults, true)
+
+function scanResults() {
+	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+		if (!done[e.getAttribute(css.sesbId)]) {
+			e.setAttribute(css.sesbId, Math.random())
+			done[e.getAttribute(css.sesbId)] = true
+			handleResult(e)
 		}
 	}
 }
 
+async function handleResult(e) {
+	const url = getUrl(e)
+	if (url === '' || url === undefined) {
+		return
+	}
+	const response = await browser.runtime.sendMessage({action: actions.check, url: url})
+	if (response === undefined) {
+		return
+	}
+	if (response.domain === undefined && updated === undefined) {
+		browser.runtime.sendMessage({action: actions.updateSpamLists})
+		updated = true
+		return
+	}
+	if (response.toRemove === true) {
+		blockedNumber++
+		e.classList.add(response.showBlocked === 1 ? css.blockedShow : css.hidden)
+	}
+	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
+}
+
+function getUrl(e) {
+	return e.classList.contains(textResult) ?
+		e.getAttribute('data-domain').replace(regex.urlRegex, '')
+		: e.querySelector('.tile--img__sub').href.replace(regex.urlRegex, '')
+}
+
+/*---Add block/unblock buttons---*/
+
+function addBlockButtons(e, url, domain, privateDomain, showButtons, showBlocked, toRemove) {
+	const div = document.createElement('div')
+	div.classList.add(css.blockDiv)
+	div.innerText = texts.block
+	if (showButtons !== 1 || toRemove === true) {
+		div.classList.add(css.hidden)
+	}
+	if (showBlocked === 1) {
+		addUnblockButtons(e, url, domain, privateDomain, showBlocked, toRemove)
+	}
+	if (domain !== undefined) {
+		createBlockButton(domain, div, e)
+	}
+	if (privateDomain !== undefined && privateDomain !== url) {
+		createBlockButton(privateDomain, div, e)
+	}
+	if (url !== domain) {
+		createBlockButton(url, div, e)
+	}
+	e.classList.add(css.fixHeight)
+	e.classList.contains(textResult) ? e.prepend(div) : fixDimensions(e, div)
+}
+
+function addUnblockButtons(e, url, domain, privateDomain, showButtons, toRemove) {
+	const div = document.createElement('div')
+	div.classList.add(css.unblockDiv)
+	div.innerText = texts.unblock
+	if (showButtons !== 1 || toRemove !== true) {
+		div.classList.add(css.hidden)
+	}
+	if (domain !== undefined) {
+		createUnblockButton(domain, div, e, false)
+	}
+	if (privateDomain !== undefined && privateDomain !== url) {
+		createUnblockButton(privateDomain, div, e, false)
+	}
+	if (url !== domain) {
+		createUnblockButton(url, div, e, true)
+	}
+	e.classList.add(css.fixHeight)
+	e.classList.contains(textResult) ? e.prepend(div) : fixDimensions(e, div)
+}
+
+function createBlockButton(url, div, e) {
+	const button = document.createElement('button')
+	button.innerText = url
+	button.addEventListener('click', function(event){block(event, url)})
+	div.appendChild(button)
+}
+
+function createUnblockButton(url, div, e, isSub) {
+	const button = document.createElement('button')
+	button.innerText = url
+	button.addEventListener('click', function(event){unblock(event, url, isSub)})
+	div.appendChild(button)
+}
+
+function fixDimensions(e, div) {
+	const dim = e.querySelectorAll('.tile--img__dimensions')[1]
+	const sub = e.querySelector('.tile--img__sub')
+	dim.remove()
+	e.insertBefore(dim, sub)
+	dim.classList.add(css.fixImageSize)
+	e.appendChild(div)
+}
+
+/*---Block/unblock search results---*/
+
+function block(event, url) {
+	event.stopPropagation()
+	browser.runtime.sendMessage({action: actions.update, url: url}).then((resp) => findAndBlock(resp, url))
+}
+
+function unblock(event, url, isSub) {
+	event.stopPropagation()
+	browser.runtime.sendMessage({action: actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
+}
+
 function findAndBlock(response, url) {
 	if (response.whitelisted === true) {
-		if (confirm('This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?')) {
-			browser.runtime.sendMessage({action: sesbConstants.actions.removeFromWhitelistAndUpdate, url: url})
-		} else {
+		if (!confirm(texts.blockAlert)) {
 			return
 		}
+		browser.runtime.sendMessage({action: actions.removeFromWhitelistAndUpdate, url: url})
 	}
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (getUrl(elem).endsWith(url)) {
-			elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.add(sesbConstants.css.hidden)
+	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+		if (getUrl(e).endsWith(url)) {
+			blockedNumber++
+			e.querySelector('.' + css.blockDiv).classList.add(css.hidden)
 			if (response.showBlocked === 1) {
-				elem.classList.add(sesbConstants.css.blockedShow)
-				elem.getElementsByClassName(sesbConstants.css.unblockDiv)[0].classList.remove(sesbConstants.css.hidden)
+				e.classList.add(css.blockedShow)
+				e.querySelector('.' + css.unblockDiv).classList.remove(css.hidden)
 			} else {
-				elem.classList.add(sesbConstants.css.hidden)
+				e.classList.add(css.hidden)
 			}
 		}
 	}
 }
 
 function findAndUnblock(response, url) {
-	for (const elem of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
-		if (getUrl(elem).endsWith(url)) {
-			elem.classList.remove(sesbConstants.css.hidden, sesbConstants.css.blockedShow)
-			if (response.showBlocked === 1) {
-				elem.getElementsByClassName(sesbConstants.css.blockDiv)[0].classList.remove(sesbConstants.css.hidden)
+	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
+		if (getUrl(e).endsWith(url)) {
+			blockedNumber--
+			e.classList.remove(css.hidden, css.blockedShow)
+			if (response.showButtons === 1) {
+				e.querySelector('.' + css.blockDiv).classList.remove(css.hidden)
 			}
-			elem.getElementsByClassName(sesbConstants.css.unblockDiv)[0].classList.add(sesbConstants.css.hidden)
+			e.querySelector('.' + css.unblockDiv).classList.add(css.hidden)
 		}
 	}
-}
-
-function updateYourBlocklist(event, url) {
-	event.stopPropagation()
-	browser.runtime.sendMessage({action: sesbConstants.actions.update, url: url}).then((resp) => findAndBlock(resp, url))
-}
-
-function unblock(event, url, isSub) {
-	event.stopPropagation()
-	browser.runtime.sendMessage({action: sesbConstants.actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))
-}
-
-function createBlockButton(url, div, elem) {
-	const button = document.createElement('button')
-	button.innerText = url
-	button.title = 'Block ' + url + '?'
-	button.addEventListener('click', function(event){updateYourBlocklist(event, url)})
-	div.appendChild(button)
-}
-
-function addBlockButtons(elem, url, domain, privateDomain, showButtons, showBlocked, toRemove) {
-	const div = document.createElement('div')
-	div.classList.add(sesbConstants.css.blockDiv)
-	div.innerHTML = 'Block '
-	if (showButtons !== 1 || toRemove === true) {
-		div.classList.add(sesbConstants.css.hidden)
-	}
-	if (showBlocked === 1) {
-		addUnblockButtons(elem, url, domain, privateDomain, showBlocked, toRemove)
-	}
-	if (domain !== undefined) {
-		createBlockButton(domain, div, elem)
-	}
-	if (privateDomain !== undefined && privateDomain !== url) {
-		createBlockButton(privateDomain, div, elem)
-	}
-	if (url !== domain) {
-		createBlockButton(url, div, elem)
-	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixDimensions(elem, div)
-}
-
-function createUnblockButton(url, div, elem, isSub) {
-	const button = document.createElement('button')
-	button.innerText = url
-	button.title = 'Unblock ' + url + '?'
-	button.addEventListener('click', function(event){unblock(event, url, isSub)})
-	div.appendChild(button)
-}
-
-function fixDimensions(elem, div) {
-	const dim = elem.querySelectorAll('.tile--img__dimensions')[1]
-	const sub = elem.querySelector('.tile--img__sub')
-	dim.remove()
-	elem.insertBefore(dim, sub)
-	dim.classList.add(sesbConstants.css.fixImageSize)
-	elem.appendChild(div)
-}
-
-function addUnblockButtons(elem, url, domain, privateDomain, showButtons, toRemove) {
-	const div = document.createElement('div')
-	div.classList.add(sesbConstants.css.unblockDiv)
-	div.innerHTML = 'Unblock '
-	if (showButtons !== 1 || toRemove !== true) {
-		div.classList.add(sesbConstants.css.hidden)
-	}
-	if (domain !== undefined) {
-		createUnblockButton(domain, div, elem, false)
-	}
-	if (privateDomain !== undefined && privateDomain !== url) {
-		createUnblockButton(privateDomain, div, elem, false)
-	}
-	if (url !== domain) {
-		createUnblockButton(url, div, elem, true)
-	}
-	elem.classList.add(sesbConstants.css.fixHeight)
-	elem.classList.contains(textResult) ? elem.prepend(div) : fixDimensions(elem, div)
-}
-
-function getUrl(e) {
-	return e.classList.contains(textResult) ?
-		e.getAttribute('data-domain').replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-		: e.querySelector('.tile--img__sub').href.replace(/^http.*:\/\/|\/.*$|:\d+/g, '')
-}
-
-async function removeElement(e) {
-	const url = getUrl(e)
-	if (url === '' || url === undefined) {
-		return
-	}
-	const response = await browser.runtime.sendMessage({action: sesbConstants.actions.check, url: url})
-	if (response === undefined) {
-		return
-	}
-	if (response.domain === undefined && updated === undefined) {
-		browser.runtime.sendMessage({action: sesbConstants.actions.updateSpamLists})
-		updated = true
-		return
-	}
-	if (response.toRemove === true) {
-		e.classList.add(response.showBlocked === 1 ? sesbConstants.css.blockedShow : sesbConstants.css.hidden)
-	}
-	addBlockButtons(e, url, response.domain, response.privateDomain, response.showButtons, response.showBlocked, response.toRemove)
 }

@@ -1,39 +1,54 @@
 'use strict'
-var sesbConstants = {}
+let settings
+let defaultSettings
+let storedVars
+let storedResources
+let css
+let html
+let regex
+let texts
+let actions
+let unlistedSuffixes
 
 {
-	sesbConstants.settings = {
+	settings = {
 		enabled: 'enabled',
 		enableDefaultBlocklist: 'enableDefaultBlocklist',
 		showBlocked: 'showBlocked',
 		showButtons: 'showButtons'
 	},
-	sesbConstants.defaultSettings = {
+
+	defaultSettings = {
 		enabled: 1,
 		enableDefaultBlocklist: 1,
 		showBlocked: 0,
 		showButtons: 0
 	},
-	sesbConstants.storedVars = {
+
+	storedVars = {
 		blocklist: 'sesbBlocklist',
 		lastUpdate: 'sesbLastUpdate',
 		privateSuffixList: 'sesbPrivateSuffixList',
 		suffixList: 'sesbSuffixList'
 	},
-	sesbConstants.storedResources = {
+
+	storedResources = {
 		settings: 'sesbSettings',
 		whitelist: 'sesbWhitelist',
 		yourBlocklist: 'sesbYourBlocklist'
 	},
-	sesbConstants.css = {
+
+	css = {
 		blockDiv: 'sesb-block-div',
 		blockedShow: 'sesb-blocked-show',
 		fixHeight: 'sesb-fix-height',
 		fixImageSize: 'sesb-fix-image-size',
 		hidden: 'sesb-hidden',
-		unblockDiv: 'sesb-unblock-div'
+		unblockDiv: 'sesb-unblock-div',
+		sesbId: 'sesb-id'
 	},
-	sesbConstants.html = {
+
+	html = {
 		addDomainsButton: 'add-domains-button',
 		addDomainsTextarea: 'add-domains-textarea',
 		clearBlocklist: 'clear-blocklist',
@@ -54,7 +69,23 @@ var sesbConstants = {}
 		whitelistDomainsTextarea: 'whitelist-domains-textarea',
 		yourBlocklist: 'your-blocklist'
 	},
-	sesbConstants.actions = {
+
+	regex = {
+		urlRegex: /^http.*:\/\/|\/.*$|:\d+/g,
+		urlRegexWithArrow: /^http.*:\/\/|\/.*$|:\d+|\s›.*/g
+	},
+
+	texts = {
+		blockAlert: 'This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?',
+		clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
+		removeFromBlocklist: 'Remove this domain from your blocklist?',
+		removeFromWhitelist: 'Remove this domain from your whitelist?',
+		block: 'Block ',
+		unblock: 'Unblock ',
+		remove: '✖'
+	}
+
+	actions = {
 		check: 1,
 		checkOptionsBlocklistUpdated: 2,
 		checkOptionsWhitelistUpdated: 3,
@@ -69,9 +100,11 @@ var sesbConstants = {}
 		update: 12,
 		updateMultiple: 13,
 		updateSpamLists: 14,
-		whitelistMultiple: 15
+		whitelistMultiple: 15,
+		updateBadge: 16
 	},
-	sesbConstants.unlistedSuffixes = [
+
+	unlistedSuffixes = [
 		'ac.bd',
 		'ac.fk',
 		'ac.pg',

@@ -1,27 +1,27 @@
 'use strict'
-let settings
+let activeSettings
 document.addEventListener('click', handleClicks)
 
 function handleClicks(click) {
 	switch (click.srcElement.id) {
-		case sesbConstants.html.enabled:
-			settings.enabled ^= true
+		case html.enabled:
+			activeSettings.enabled ^= true
 			showOrHideSettings()
 			updateSettings()
 			break
-		case sesbConstants.html.showBlocked:
-			settings.showBlocked ^= true
+		case html.showBlocked:
+			activeSettings.showBlocked ^= true
 			updateSettings()
 			break
-		case sesbConstants.html.showBlockButtons:
-			settings.showButtons ^= true
+		case html.showBlockButtons:
+			activeSettings.showButtons ^= true
 			updateSettings()
 			break
-		case sesbConstants.html.enableDefaultBlocklist:
-			settings.enableDefaultBlocklist ^= true
+		case html.enableDefaultBlocklist:
+			activeSettings.enableDefaultBlocklist ^= true
 			updateSettings()
 			break
-		case sesbConstants.html.manageYourBlocklist:
+		case html.manageYourBlocklist:
 			browser.tabs.create({url: browser.runtime.getURL('options/options.html')})
 			window.close()
 		default:
@@ -30,34 +30,36 @@ function handleClicks(click) {
 }
 
 function updateSettings() {
-	browser.storage.local.set({sesbSettings: settings}).then(browser.runtime.sendMessage({action: sesbConstants.actions.reloadSettings}))
+	browser.storage.local.set({sesbSettings: activeSettings}).then(browser.runtime.sendMessage({action: actions.reloadSettings}))
 }
 
 function handleNullSettings(savedSettings) {
-	settings = savedSettings === undefined ? sesbConstants.defaultSettings : savedSettings
-	document.getElementById(sesbConstants.html.enabled).checked = settings.enabled
-	document.getElementById(sesbConstants.html.showBlocked).checked = settings.showBlocked
-	document.getElementById(sesbConstants.html.showBlockButtons).checked = settings.showButtons
-	document.getElementById(sesbConstants.html.enableDefaultBlocklist).checked = settings.enableDefaultBlocklist
+	activeSettings = savedSettings === undefined ? defaultSettings : savedSettings
+	document.getElementById(html.enabled).checked = activeSettings.enabled
+	document.getElementById(html.showBlocked).checked = activeSettings.showBlocked
+	document.getElementById(html.showBlockButtons).checked = activeSettings.showButtons
+	document.getElementById(html.enableDefaultBlocklist).checked = activeSettings.enableDefaultBlocklist
 	showOrHideSettings()
 }
 
 function showOrHideSettings() {
-	if (settings.enabled === 0) {
-		for (const e of document.querySelectorAll('.' + sesbConstants.html.toHide)) {
+	if (activeSettings.enabled === 0) {
+		browser.browserAction.setIcon({path: "../icons/16_off.png"});
+		for (const e of document.querySelectorAll('.' + html.toHide)) {
 			e.classList.add('hidden')
 		}
-		document.getElementById(sesbConstants.html.manageYourBlocklist).classList.add('hidden')
+		document.getElementById(html.manageYourBlocklist).classList.add('hidden')
 	} else {
-		for (const e of document.querySelectorAll('.' + sesbConstants.html.toHide)) {
+		browser.browserAction.setIcon({path: "../icons/16.png"});
+		for (const e of document.querySelectorAll('.' + html.toHide)) {
 			e.classList.remove('hidden')
 		}
-		document.getElementById(sesbConstants.html.manageYourBlocklist).classList.remove('hidden')
+		document.getElementById(html.manageYourBlocklist).classList.remove('hidden')
 	}
 }
 
 function loadSettings() {
-	browser.storage.local.get(sesbConstants.storedResources.settings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+	browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
 loadSettings()

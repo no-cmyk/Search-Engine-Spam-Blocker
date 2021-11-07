@@ -1,11 +1,11 @@
 'use strict'
-const listElem = document.getElementById(sesbConstants.html.yourBlocklist)
-const exportElem = document.getElementById(sesbConstants.html.export)
-const importElem = document.getElementById(sesbConstants.html.import)
-const textareaElem = document.getElementById(sesbConstants.html.addDomainsTextarea)
-const resultOkElem = document.getElementById(sesbConstants.html.resultOk)
-const textareaWhitelistElem = document.getElementById(sesbConstants.html.whitelistDomainsTextarea)
-const whitelistElem = document.getElementById(sesbConstants.html.whitelist)
+const listElem = document.getElementById(html.yourBlocklist)
+const exportElem = document.getElementById(html.export)
+const importElem = document.getElementById(html.import)
+const textareaElem = document.getElementById(html.addDomainsTextarea)
+const resultOkElem = document.getElementById(html.resultOk)
+const textareaWhitelistElem = document.getElementById(html.whitelistDomainsTextarea)
+const whitelistElem = document.getElementById(html.whitelist)
 let domainsAsList = []
 let whitelistDomainsAsList = []
 let listIndex = 0
@@ -21,35 +21,35 @@ function addListeners() {
 
 function handleClicks(click) {
 	switch (click.srcElement.id) {
-		case sesbConstants.html.domain:
+		case html.domain:
 			removeFromYourBlocklist(click.srcElement.parentElement)
 			break
-		case sesbConstants.html.domainWhitelist:
+		case html.domainWhitelist:
 			removeFromWhitelist(click.srcElement.parentElement)
 			break
-		case sesbConstants.html.updateSpamLists:
-			browser.runtime.sendMessage({action: sesbConstants.actions.updateSpamLists})
+		case html.updateSpamLists:
+			browser.runtime.sendMessage({action: actions.updateSpamLists})
 			resultOkElem.style.display = 'initial'
 			setTimeout(function(){resultOkElem.style.display = 'none'}, 3000)
 			break
-		case sesbConstants.html.export:
+		case html.export:
 			exportElem.parentElement.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(domainsAsList.join('\n')))
 			exportElem.parentElement.setAttribute('download', 'SESB_Blocklist_' + new Date().toISOString() + '.txt')
 			break
-		case sesbConstants.html.addDomainsButton:
+		case html.addDomainsButton:
 			listElem.innerHTML = ''
 			addDomainsToBlocklist(textareaElem.value)
 			textareaElem.value = ''
 			break
-		case sesbConstants.html.clearBlocklist:
-			if (confirm('WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?')) {
+		case html.clearBlocklist:
+			if (confirm(texts.clearBlocklistAlert)) {
 				domainsAsList = []
 				listElem.innerHTML = ''
 				listIndex = 0
-				browser.runtime.sendMessage({action: sesbConstants.actions.clearBlocklist})
+				browser.runtime.sendMessage({action: actions.clearBlocklist})
 			}
 			break
-		case sesbConstants.html.whitelistDomainsButton:
+		case html.whitelistDomainsButton:
 			whitelistElem.innerHTML = ''
 			whitelistDomains(textareaWhitelistElem.value)
 			textareaWhitelistElem.value = ''
@@ -81,9 +81,9 @@ function populateWhitelist() {
 	for (let i = 0; i < whitelistDomainsAsList.length; i++) {
 		const li = document.createElement('li')
 		const removeBtn = document.createElement('span')
-		removeBtn.id = sesbConstants.html.domainWhitelist
-		removeBtn.innerText = '✖'
-		removeBtn.title = 'Remove this domain from your whitelist?'
+		removeBtn.id = html.domainWhitelist
+		removeBtn.innerText = texts.remove
+		removeBtn.title = texts.removeFromWhitelist
 		li.innerText = whitelistDomainsAsList[i]
 		li.prepend(removeBtn)
 		c.appendChild(li)
@@ -99,9 +99,9 @@ function populateBlocklist() {
 		}
 		const li = document.createElement('li')
 		const removeBtn = document.createElement('span')
-		removeBtn.id = sesbConstants.html.domain
-		removeBtn.innerText = '✖'
-		removeBtn.title = 'Remove this domain from your blocklist?'
+		removeBtn.id = html.domain
+		removeBtn.innerText = texts.remove
+		removeBtn.title = texts.removeFromBlocklist
 		li.innerText = domainsAsList[i]
 		li.prepend(removeBtn)
 		c.appendChild(li)
@@ -111,29 +111,29 @@ function populateBlocklist() {
 
 function addDomainsToBlocklist(domains) {
 	let domainsToAdd = domains.split('\n')
-	browser.runtime.sendMessage({action: sesbConstants.actions.updateMultiple, url: domainsToAdd})
+	browser.runtime.sendMessage({action: actions.updateMultiple, url: domainsToAdd})
 	checkBlocklistUpdated()
 }
 
 function whitelistDomains(domains) {
 	whitelistDomainsAsList = domains.split('\n')
-	browser.runtime.sendMessage({action: sesbConstants.actions.whitelistMultiple, url: whitelistDomainsAsList})
+	browser.runtime.sendMessage({action: actions.whitelistMultiple, url: whitelistDomainsAsList})
 	checkWhitelistUpdated()
 }
 
 async function loadLists(loadBlock, loadWhite) {
 	if (loadBlock === true) {
-		domainsAsList = await browser.runtime.sendMessage({action: sesbConstants.actions.loadYourBlocklist})
+		domainsAsList = await browser.runtime.sendMessage({action: actions.loadYourBlocklist})
 		populateBlocklist()
 	}
 	if (loadWhite === true) {
-		whitelistDomainsAsList = await browser.runtime.sendMessage({action: sesbConstants.actions.loadWhitelist})
+		whitelistDomainsAsList = await browser.runtime.sendMessage({action: actions.loadWhitelist})
 		populateWhitelist()
 	}
 }
 
 function removeFromYourBlocklist(li) {
-	browser.runtime.sendMessage({action: sesbConstants.actions.remove, url: li.innerText.substring(1)})
+	browser.runtime.sendMessage({action: actions.remove, url: li.innerText.substring(1)})
 	li.remove()
 	if (listElem.childElementCount === 0) {
 		listIndex = 0
@@ -141,15 +141,15 @@ function removeFromYourBlocklist(li) {
 }
 
 function removeFromWhitelist(li) {
-	browser.runtime.sendMessage({action: sesbConstants.actions.removeFromWhitelist, url: li.innerText.substring(1)})
+	browser.runtime.sendMessage({action: actions.removeFromWhitelist, url: li.innerText.substring(1)})
 	li.remove()
 }
 
 async function checkBlocklistUpdated() {
 	let updated = false
 	while (updated === false) {
-		await sleep(400)
-		updated = await browser.runtime.sendMessage({action: sesbConstants.actions.checkOptionsBlocklistUpdated})
+		await new Promise(resolve => setTimeout(resolve, 400))
+		updated = await browser.runtime.sendMessage({action: actions.checkOptionsBlocklistUpdated})
 		if (updated === true) {
 			loadLists(true, false)
 		}
@@ -159,14 +159,10 @@ async function checkBlocklistUpdated() {
 async function checkWhitelistUpdated() {
 	let updated = false
 	while (updated === false) {
-		await sleep(400)
-		updated = await browser.runtime.sendMessage({action: sesbConstants.actions.checkOptionsWhitelistUpdated})
+		await new Promise(resolve => setTimeout(resolve, 400))
+		updated = await browser.runtime.sendMessage({action: actions.checkOptionsWhitelistUpdated})
 		if (updated === true) {
 			loadLists(false, true)
 		}
 	}
-}
-
-function sleep(ms) {
-	return new Promise(resolve => setTimeout(resolve, ms))
 }

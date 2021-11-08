@@ -8,6 +8,11 @@ const imgResult = 'imageResult'
 /*---Scan search results---*/
 
 document.addEventListener('load', scanResults, true)
+setInterval(updateBadge, 2000)
+
+function updateBadge() {
+	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: blockedNumber})
+}
 
 function scanResults() {
 	setTimeout(function () {

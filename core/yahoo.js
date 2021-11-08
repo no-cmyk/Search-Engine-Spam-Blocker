@@ -6,6 +6,11 @@ const textResult = 'algo'
 /*---Scan search results---*/
 
 document.addEventListener('DOMContentLoaded', function(){setTimeout(scanResults, 500)}, true)
+setInterval(updateBadge, 2000)
+
+function updateBadge() {
+	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: blockedNumber})
+}
 
 function scanResults() {
 	for (const e of document.querySelectorAll('.' + textResult)) {

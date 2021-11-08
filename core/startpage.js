@@ -8,6 +8,11 @@ const imgResult = 'image-container'
 /*---Scan search results---*/
 
 document.addEventListener('DOMContentLoaded', scanResults, true)
+setInterval(updateBadge, 2000)
+
+function updateBadge() {
+	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: blockedNumber})
+}
 
 function scanResults() {
 	setTimeout(function () {

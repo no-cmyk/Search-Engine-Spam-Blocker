@@ -23,7 +23,7 @@ function scanResults() {
 				handleResult(e)
 			}
 		}
-	}, 500)
+	}, 1500)
 }
 
 async function handleResult(e) {

@@ -19,7 +19,7 @@ function scanResults() {
 		for (const e of document.querySelectorAll('.' + textResult + '\,.' + textResultAd + '\,.' + imgResult)) {
 			handleResult(e)
 		}
-	}, 500)
+	}, 1500)
 }
 
 async function handleResult(e) {

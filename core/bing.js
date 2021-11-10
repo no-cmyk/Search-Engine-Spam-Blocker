@@ -51,7 +51,7 @@ function getUrl(e) {
 	if (e.classList.contains(textResult)) {
 		href = links[links[0].href === "" ? 1 : 0].href
 	} else {
-		href = e.nextElementSibling.getElementsByTagName('a')[0].href
+		href = links[1] === undefined ? e.nextElementSibling.getElementsByTagName('a')[0].href : links[1].href
 	}
 	return href.replace(regex.urlRegex, '')
 }

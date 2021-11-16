@@ -71,7 +71,7 @@ function handleMessages(message, sender) {
 			return Promise.resolve(false)
 		case actions.updateBadge:
 			browser.browserAction.setBadgeText({text: String(message.blockedNumber), tabId: sender.tab.id})
-			break
+			return Promise.resolve(activeSettings)
 		default:
 			break
 	}
@@ -107,7 +107,7 @@ function checkUrl(url) {
 			(defaultBlocklist[noSubUrl] || defaultBlocklist[url] || yourBlocklist[noSubUrl] || yourBlocklist[url] || (privateUrl !== undefined && (defaultBlocklist[privateUrl] || yourBlocklist[privateUrl])))
 			: (yourBlocklist[noSubUrl] || yourBlocklist[url] || (privateUrl !== undefined && yourBlocklist[privateUrl]))
 	}
-	return {toRemove: toRemove, domain: noSubUrl, privateDomain: privateUrl, showBlocked: activeSettings.showBlocked, showButtons: activeSettings.showButtons}
+	return {toRemove: toRemove, domain: noSubUrl, privateDomain: privateUrl}
 }
 
 /*--- Your blocklist ---*/
@@ -130,7 +130,7 @@ function updateYourBlocklist(url) {
 		yourBlocklist[url] = true
 		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
 	}
-	return {showBlocked: activeSettings.showBlocked, whitelisted: whitelisted}
+	return {whitelisted: whitelisted}
 }
 
 function updateMultiple(domains) {
@@ -169,7 +169,6 @@ function whitelistMultiple(domains) {
 
 function unblock(url, isSub) {
 	doWithWorker(function(){unblockWithWorker(url, isSub)})
-	return {showBlocked: activeSettings.showBlocked, showButtons: activeSettings.showButtons}
 }
 
 function unblockWithWorker(url, isSub) {
@@ -214,7 +213,7 @@ function handleNullSettings(savedSettings) {
 }
 
 function loadSettings() {
-	browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+	browser.storage.local.get(storedResources.settings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
 async function loadYourBlocklist() {
@@ -313,7 +312,7 @@ async function checkIfNeedsUpdate() {
 	suffixList = await browser.storage.local.get(storedVars.suffixList).then((r) => r.sesbSuffixList)
 	privateSuffixList = await browser.storage.local.get(storedVars.privateSuffixList).then((r) => r.sesbPrivateSuffixList)
 	defaultBlocklist = await browser.storage.local.get(storedVars.blocklist).then((r) => r.sesbBlocklist)
-	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || privateSuffixList === undefined || (Date.now() - lastUpdate > 86400)) {
+	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || privateSuffixList === undefined || Date.now() - lastUpdate > 86400000) {
 		needsUpdate = true
 	}
 }

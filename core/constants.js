@@ -40,12 +40,13 @@ let unlistedSuffixes
 
 	css = {
 		blockDiv: 'sesb-block-div',
+		unblockDiv: 'sesb-unblock-div',
 		blockedShow: 'sesb-blocked-show',
 		fixHeight: 'sesb-fix-height',
 		fixImageSize: 'sesb-fix-image-size',
 		hidden: 'sesb-hidden',
-		unblockDiv: 'sesb-unblock-div',
-		sesbId: 'sesb-id'
+		sesbId: 'sesb-id',
+		blocked: 'sesb-blocked'
 	},
 
 	html = {

@@ -102,7 +102,8 @@ let unlistedSuffixes
 		updateMultiple: 13,
 		updateSpamLists: 14,
 		whitelistMultiple: 15,
-		updateBadge: 16
+		updateBadge: 16,
+		getActiveSettings: 17
 	},
 
 	unlistedSuffixes = [

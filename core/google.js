@@ -1,24 +1,24 @@
 'use strict'
 let updated
-let activeSettings = {}
+let activeSettings
 const imgDone = {}
 const textResult = 'g'
 const textResultMobile = 'xpd'
 const imgResult = 'isv-r'
 
-/*---Scan search results---*/
-
 document.addEventListener('DOMContentLoaded', scanTextResults, true)
 document.addEventListener('load', scanImageResults, true)
-setInterval(update, 2000)
 
-async function update(manual) {
-	if (!manual) {
-		const newActiveSettings = await browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: document.querySelectorAll('.' + css.blocked).length})
-		if (newActiveSettings === activeSettings) {
-			return
-		}
-		activeSettings = newActiveSettings
+/*---Handle settings---*/
+
+browser.runtime.onMessage.addListener(message => {
+	activeSettings = message
+	update()
+})
+
+async function update() {
+	if (activeSettings === undefined) {
+		activeSettings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	}
 	if (activeSettings.enabled === 0) {
 		return
@@ -27,25 +27,27 @@ async function update(manual) {
 		if (!shouldHandle(e)) {
 			continue
 		}
+		let blockDiv = e.querySelector('.' + css.blockDiv)
+		let unblockDiv = e.querySelector('.' + css.unblockDiv)
+		if (blockDiv === null || unblockDiv === null) {
+			continue
+		}
 		if (e.classList.contains(css.blocked)) {
 			activeSettings.showBlocked === 1 ? e.classList.add(css.blockedShow) : e.classList.remove(css.blockedShow)
 			activeSettings.showBlocked === 1 ? e.classList.remove(css.hidden) : e.classList.add(css.hidden)
+			blockDiv.classList.add(css.hidden)
+			unblockDiv.classList.remove(css.hidden)
 		} else {
 			e.classList.remove(css.hidden)
 			e.classList.remove(css.blockedShow)
-		}
-		if (e.classList.contains(css.blocked)) {
-			e.querySelector('.' + css.blockDiv).classList.add(css.hidden)
-			e.querySelector('.' + css.unblockDiv).classList.remove(css.hidden)
-		} else if (activeSettings.showButtons === 1) {
-			e.querySelector('.' + css.blockDiv).classList.remove(css.hidden)
-			e.querySelector('.' + css.unblockDiv).classList.add(css.hidden)
-		} else {
-			e.querySelector('.' + css.blockDiv).classList.add(css.hidden)
-			e.querySelector('.' + css.unblockDiv).classList.add(css.hidden)
+			activeSettings.showButtons === 1 ? blockDiv.classList.remove(css.hidden) : blockDiv.classList.add(css.hidden)
+			unblockDiv.classList.add(css.hidden)
 		}
 	}
+	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: document.querySelectorAll('.' + css.blocked).length})
 }
+
+/*---Scan search results---*/
 
 function scanTextResults() {
 	for (const e of document.querySelectorAll('.' + textResult + '\,.' + textResultMobile)) {
@@ -53,7 +55,6 @@ function scanTextResults() {
 			handleResult(e)
 		}
 	}
-	update(false)
 }
 
 function shouldHandle(e) {
@@ -76,7 +77,7 @@ function scanImageResults() {
 			handleResult(e)
 		}
 	}
-	update(false)
+	update()
 }
 
 async function handleResult(e) {
@@ -168,16 +169,16 @@ function findAndBlock(response, url) {
 	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultMobile)) {
 		if (getUrl(e).endsWith(url) && shouldHandle(e)) {
 			e.classList.add(css.blocked)
-			update(true)
 		}
 	}
+	update()
 }
 
 function findAndUnblock(response, url) {
 	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultMobile)) {
 		if (getUrl(e).endsWith(url) && shouldHandle(e)) {
 			e.classList.remove(css.blocked)
-			update(true)
 		}
 	}
+	update()
 }

@@ -71,6 +71,8 @@ function handleMessages(message, sender) {
 			return Promise.resolve(false)
 		case actions.updateBadge:
 			browser.browserAction.setBadgeText({text: String(message.blockedNumber), tabId: sender.tab.id})
+			break
+		case actions.getActiveSettings:
 			return Promise.resolve(activeSettings)
 		default:
 			break
@@ -80,9 +82,6 @@ function handleMessages(message, sender) {
 /*--- Domain check ---*/
 
 function checkUrl(url) {
-	if (activeSettings.enabled === 0) {
-		return undefined
-	}
 	const urlArray = url.split('.')
 	let noSubUrl
 	let privateUrl

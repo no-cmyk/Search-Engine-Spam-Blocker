@@ -31,6 +31,7 @@ function handleClicks(click) {
 
 function updateSettings() {
 	browser.storage.local.set({sesbSettings: activeSettings}).then(browser.runtime.sendMessage({action: actions.reloadSettings}))
+	browser.tabs.query({}, (tabs) => tabs.forEach(tab => browser.tabs.sendMessage(tab.id, activeSettings)))
 }
 
 function handleNullSettings(savedSettings) {
@@ -44,13 +45,13 @@ function handleNullSettings(savedSettings) {
 
 function showOrHideSettings() {
 	if (activeSettings.enabled === 0) {
-		browser.browserAction.setIcon({path: "../icons/16_off.png"});
+		browser.browserAction.setIcon({path: "../icons/32_off.png"});
 		for (const e of document.querySelectorAll('.' + html.toHide)) {
 			e.classList.add('hidden')
 		}
 		document.getElementById(html.manageYourBlocklist).classList.add('hidden')
 	} else {
-		browser.browserAction.setIcon({path: "../icons/16.png"});
+		browser.browserAction.setIcon({path: "../icons/32.png"});
 		for (const e of document.querySelectorAll('.' + html.toHide)) {
 			e.classList.remove('hidden')
 		}

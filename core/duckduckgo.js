@@ -1,50 +1,52 @@
 'use strict'
 let updated
-let activeSettings = {}
+let activeSettings
 const done = {}
 const textResult = 'result--url-above-snippet'
 const textResultDetails = 'result__sitelinks'
 const imgResult = 'tile--img'
 
-/*---Scan search results---*/
-
 document.addEventListener('load', scanResults, true)
-setInterval(update, 2000)
 
-async function update(manual) {
-	if (!manual) {
-		const newActiveSettings = await browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: document.querySelectorAll('.' + css.blocked).length})
-		if (newActiveSettings === activeSettings) {
-			return
-		}
-		activeSettings = newActiveSettings
+/*---Handle settings---*/
+
+browser.runtime.onMessage.addListener(message => {
+	activeSettings = message
+	update()
+})
+
+async function update() {
+	if (activeSettings === undefined) {
+		activeSettings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	}
 	if (activeSettings.enabled === 0) {
 		return
 	}
 	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultDetails)) {
-		if (e.classList.contains(css.blocked)) {
-			activeSettings.showBlocked === 1 ? e.classList.add(css.blockedShow) : e.classList.remove(css.blockedShow)
-			activeSettings.showBlocked === 1 ? e.classList.remove(css.hidden) : e.classList.add(css.hidden)
-		} else {
-			e.classList.remove(css.hidden)
-			e.classList.remove(css.blockedShow)
-		}
 		if (e.classList.contains(textResultDetails)) {
 			continue
 		}
+		let blockDiv = e.querySelector('.' + css.blockDiv)
+		let unblockDiv = e.querySelector('.' + css.unblockDiv)
+		if (blockDiv === null || unblockDiv === null) {
+			continue
+		}
 		if (e.classList.contains(css.blocked)) {
-			e.querySelector('.' + css.blockDiv).classList.add(css.hidden)
-			e.querySelector('.' + css.unblockDiv).classList.remove(css.hidden)
-		} else if (activeSettings.showButtons === 1) {
-			e.querySelector('.' + css.blockDiv).classList.remove(css.hidden)
-			e.querySelector('.' + css.unblockDiv).classList.add(css.hidden)
+			activeSettings.showBlocked === 1 ? e.classList.add(css.blockedShow) : e.classList.remove(css.blockedShow)
+			activeSettings.showBlocked === 1 ? e.classList.remove(css.hidden) : e.classList.add(css.hidden)
+			blockDiv.classList.add(css.hidden)
+			unblockDiv.classList.remove(css.hidden)
 		} else {
-			e.querySelector('.' + css.blockDiv).classList.add(css.hidden)
-			e.querySelector('.' + css.unblockDiv).classList.add(css.hidden)
+			e.classList.remove(css.hidden)
+			e.classList.remove(css.blockedShow)
+			activeSettings.showButtons === 1 ? blockDiv.classList.remove(css.hidden) : blockDiv.classList.add(css.hidden)
+			unblockDiv.classList.add(css.hidden)
 		}
 	}
+	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: document.querySelectorAll('.' + css.blocked).length})
 }
+
+/*---Scan search results---*/
 
 function scanResults() {
 	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
@@ -54,7 +56,7 @@ function scanResults() {
 			handleResult(e)
 		}
 	}
-	update(false)
+	setTimeout(update, 1500)
 }
 
 async function handleResult(e) {
@@ -174,9 +176,9 @@ function findAndBlock(response, url) {
 	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult)) {
 		if (getUrl(e).endsWith(url)) {
 			blockElement(e)
-			update(true)
 		}
 	}
+	update()
 }
 
 function findAndUnblock(response, url) {
@@ -186,7 +188,7 @@ function findAndUnblock(response, url) {
 			if (e.nextElementSibling.classList.contains(textResultDetails)) {
 				e.nextElementSibling.classList.remove(css.blocked)
 			}
-			update(true)
 		}
 	}
+	update()
 }

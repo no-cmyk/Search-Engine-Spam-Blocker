@@ -28,19 +28,15 @@
 }
 
 .sesb-block-div button {
-	color: darkred;
+	color: crimson;
 }
 
 .sesb-unblock-div button {
 	color: white;
 }
 
-.sesb-block-div button:hover {
-	text-shadow: 1px 0px 2px lightcoral;
-}
-
-.sesb-unblock-div button:hover {
-	text-shadow: 1px 0px 2px white;
+.sesb-block-div button:hover, .sesb-unblock-div button:hover {
+	text-shadow: 1px 0px 2px pink;
 }
 
 .sesb-block-div button:focus, .sesb-unblock-div button:focus {

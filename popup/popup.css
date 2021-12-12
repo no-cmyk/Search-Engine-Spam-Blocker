@@ -68,7 +68,3 @@ img {
 :focus {
 	outline: none;
 }
-
-.hidden {
-	opacity: 0.5;
-}

@@ -1,10 +1,11 @@
 'use strict'
-let updated
-let activeSettings
+let settings
 const imgDone = {}
 const textResult = 'g'
 const textResultMobile = 'xpd'
 const imgResult = 'isv-r'
+const allTextResults = '.' + textResult + '\,.' + textResultMobile
+const allResults = '.' + textResult + '\,.' + textResultMobile + '\,.' + imgResult
 
 document.addEventListener('DOMContentLoaded', scanTextResults, true)
 document.addEventListener('load', scanImageResults, true)
@@ -12,61 +13,45 @@ document.addEventListener('load', scanImageResults, true)
 /*---Handle settings---*/
 
 browser.runtime.onMessage.addListener(message => {
-	activeSettings = message
+	settings = message
 	update()
 })
 
 async function update() {
-	if (activeSettings === undefined) {
-		activeSettings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
+	if (settings === undefined) {
+		settings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	}
-	if (activeSettings.enabled === 0) {
-		return
-	}
-	for (const e of document.querySelectorAll('.' + textResult + '\,.' + textResultMobile + '\,.' + imgResult)) {
-		if (!shouldHandle(e)) {
-			continue
-		}
+	for (const e of document.querySelectorAll(allResults)) {
 		let blockDiv = e.querySelector('.' + css.blockDiv)
 		let unblockDiv = e.querySelector('.' + css.unblockDiv)
 		if (blockDiv === null || unblockDiv === null) {
 			continue
 		}
-		if (e.classList.contains(css.blocked)) {
-			activeSettings.showBlocked === 1 ? e.classList.add(css.blockedShow) : e.classList.remove(css.blockedShow)
-			activeSettings.showBlocked === 1 ? e.classList.remove(css.hidden) : e.classList.add(css.hidden)
+		if (settings.enabled === 0) {
+			e.classList.remove(css.hidden, css.blockedShow)
+			blockDiv.classList.add(css.hidden)
+			unblockDiv.classList.add(css.hidden)
+		} else if (e.classList.contains(css.blocked)) {
+			settings.showBlocked === 1 ? (e.classList.remove(css.hidden), e.classList.add(css.blockedShow)) : (e.classList.remove(css.blockedShow), e.classList.add(css.hidden))
 			blockDiv.classList.add(css.hidden)
 			unblockDiv.classList.remove(css.hidden)
 		} else {
-			e.classList.remove(css.hidden)
-			e.classList.remove(css.blockedShow)
-			activeSettings.showButtons === 1 ? blockDiv.classList.remove(css.hidden) : blockDiv.classList.add(css.hidden)
+			e.classList.remove(css.hidden, css.blockedShow)
+			blockDiv.classList.toggle(css.hidden, settings.showButtons === 0)
 			unblockDiv.classList.add(css.hidden)
 		}
 	}
-	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: document.querySelectorAll('.' + css.blocked).length})
+	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: settings.enabled === 1 ? document.querySelectorAll('.' + css.blocked).length : 0})
 }
 
 /*---Scan search results---*/
 
 function scanTextResults() {
-	for (const e of document.querySelectorAll('.' + textResult + '\,.' + textResultMobile)) {
-		if (shouldHandle(e) && e.querySelectorAll('.' + textResult + '\,.' + textResultMobile).length === 0) {
+	for (const e of document.querySelectorAll(allTextResults)) {
+		if (e.querySelectorAll(allTextResults).length === 0 && shouldHandle(e)) {
 			handleResult(e)
 		}
 	}
-}
-
-function shouldHandle(e) {
-	if (!e.classList.contains(textResultMobile)) {
-		return !e.classList.contains('mnr-c')
-		&& !e.classList.contains('g-blk')
-		&& !e.parentElement.id.startsWith('WEB_ANSWERS_')
-		&& e.querySelectorAll('.xpc\,.kp-wholepage').length === 0
-	}
-	return e.firstElementChild.firstElementChild !== null
-	&& e.firstElementChild.firstElementChild.nodeName === 'A' 
-	&& e.parentElement.parentElement.nodeName !== 'FOOTER'
 }
 
 function scanImageResults() {
@@ -80,6 +65,18 @@ function scanImageResults() {
 	update()
 }
 
+function shouldHandle(e) {
+	if (!e.classList.contains(textResultMobile)) {
+		return !e.classList.contains('mnr-c')
+			&& !e.classList.contains('g-blk')
+			&& !e.parentElement.id.startsWith('WEB_ANSWERS_')
+			&& e.querySelectorAll('.xpc\,.kp-wholepage').length === 0
+	}
+	return e.firstElementChild.firstElementChild !== null
+		&& e.firstElementChild.firstElementChild.nodeName === 'A' 
+		&& e.parentElement.parentElement.nodeName !== 'FOOTER'
+}
+
 async function handleResult(e) {
 	const url = getUrl(e)
 	if (url === '' || url === undefined) {
@@ -87,11 +84,6 @@ async function handleResult(e) {
 	}
 	const response = await browser.runtime.sendMessage({action: actions.check, url: url})
 	if (response === undefined) {
-		return
-	}
-	if (response.domain === undefined && updated === undefined) {
-		browser.runtime.sendMessage({action: actions.updateSpamLists})
-		updated = true
 		return
 	}
 	if (response.toRemove === true) {
@@ -109,8 +101,7 @@ function getUrl(e) {
 
 function addBlockButtons(e, url, domain, privateDomain, toRemove) {
 	const div = document.createElement('div')
-	div.classList.add(css.blockDiv)
-	div.classList.add(css.hidden)
+	div.classList.add(css.blockDiv, css.hidden)
 	div.innerText = texts.block
 	if (domain !== undefined) {
 		createBlockButton(domain, div, e)
@@ -127,8 +118,7 @@ function addBlockButtons(e, url, domain, privateDomain, toRemove) {
 
 function addUnblockButtons(e, url, domain, privateDomain, toRemove) {
 	const div = document.createElement('div')
-	div.classList.add(css.unblockDiv)
-	div.classList.add(css.hidden)
+	div.classList.add(css.unblockDiv, css.hidden)
 	div.innerText = texts.unblock
 	if (domain !== undefined) {
 		createUnblockButton(domain, div, e, false)
@@ -166,7 +156,7 @@ function findAndBlock(response, url) {
 		}
 		browser.runtime.sendMessage({action: actions.removeFromWhitelistAndUpdate, url: url})
 	}
-	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultMobile)) {
+	for (const e of document.querySelectorAll(allResults)) {
 		if (getUrl(e).endsWith(url) && shouldHandle(e)) {
 			e.classList.add(css.blocked)
 		}
@@ -175,7 +165,7 @@ function findAndBlock(response, url) {
 }
 
 function findAndUnblock(response, url) {
-	for (const e of document.querySelectorAll('.' + textResult + '\,.' + imgResult + '\,.' + textResultMobile)) {
+	for (const e of document.querySelectorAll(allResults)) {
 		if (getUrl(e).endsWith(url) && shouldHandle(e)) {
 			e.classList.remove(css.blocked)
 		}

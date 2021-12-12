@@ -45,22 +45,12 @@ function handleNullSettings(savedSettings) {
 
 function showOrHideSettings() {
 	if (activeSettings.enabled === 0) {
-		browser.browserAction.setIcon({path: "../icons/32_off.png"});
-		for (const e of document.querySelectorAll('.' + html.toHide)) {
-			e.classList.add('hidden')
-		}
-		document.getElementById(html.manageYourBlocklist).classList.add('hidden')
+		browser.browserAction.setIcon({path: "../icons/32_off.png"})
+		document.getElementById(html.toHide).style.opacity = 0.5
 	} else {
-		browser.browserAction.setIcon({path: "../icons/32.png"});
-		for (const e of document.querySelectorAll('.' + html.toHide)) {
-			e.classList.remove('hidden')
-		}
-		document.getElementById(html.manageYourBlocklist).classList.remove('hidden')
+		browser.browserAction.setIcon({path: "../icons/32.png"})
+		document.getElementById(html.toHide).style.opacity = 1
 	}
 }
 
-function loadSettings() {
-	browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
-}
-
-loadSettings()
+browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))

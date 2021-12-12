@@ -7,7 +7,7 @@ let optionsPageBlocklistUpdated = true
 let optionsPageWhitelistUpdated = true
 let yourBlocklist = {}
 let whitelist = {}
-const workerUrl = browser.runtime.getURL('core/worker.js')
+const workerUrl = browser.runtime.getURL('background/worker.js')
 let activeSettings
 browser.runtime.onMessage.addListener(handleMessages)
 
@@ -299,7 +299,7 @@ function fetchDefaultBlocklist(tries) {
 }
 
 function fetchSuffixList(tries) {
-	// Cannot pull from publicsuffix.org/list/public_suffix_list.dat because of a CORS header missing
+	// Cannot pull from publicsuffix.org/list/public_suffix_list.dat due to a CORS header missing
 	return fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
 		.then((r) => retryFetch(r, tries, fetchSuffixList))
 		.then((response) => response.text())

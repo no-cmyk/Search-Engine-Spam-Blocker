@@ -9,19 +9,21 @@
 		<h3>Search Engine<br>Spam Blocker</h3>
 		<br>
 		<div class="settings">
-			<label class="switch"><input type="checkbox" id="enabled"><div></div></label> <b>Enable blocking</b>
+			<label class="switch"><input type="checkbox" id="enabled"><div></div></label><span><b>Enable blocking</b></span>
 			<br><br>
 		</div>
-		<div class="settings to-hide">
-			<label class="switch"><input type="checkbox" id="show-blocked"><div></div></label><span>Show blocked results</span>
+		<div id="to-hide">
+			<div class="settings">
+				<label class="switch"><input type="checkbox" id="show-blocked"><div></div></label><span>Show blocked results</span>
+				<br>
+				<label class="switch"><input type="checkbox" id="show-block-buttons"><div></div></label><span>Show block buttons</span>
+				<br>
+				<label class="switch"><input type="checkbox" id="enable-default-blocklist"><div></div></label><span>Enable default blocklist</span>
+			</div>
 			<br>
-			<label class="switch"><input type="checkbox" id="show-block-buttons"><div></div></label><span>Show block buttons</span>
-			<br>
-			<label class="switch"><input type="checkbox" id="enable-default-blocklist"><div></div></label><span>Enable default blocklist</span>
+			<button id="manage-your-blocklist">Other settings</button>
 		</div>
-		<br>
-		<button id="manage-your-blocklist">Other settings</button>
-		<script src="../core/constants.js"></script>
+		<script src="../background/constants.js"></script>
 		<script src="popup.js"></script>
 	</body>
 </html>

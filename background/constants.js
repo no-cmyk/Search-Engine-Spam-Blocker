@@ -56,8 +56,8 @@ const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
 	removeFromBlocklist: 'Remove this domain from your blocklist?',
 	removeFromWhitelist: 'Remove this domain from your whitelist?',
-	block: 'Block ',
-	unblock: 'Unblock ',
+	block: 'Block:',
+	unblock: 'Unblock:',
 	remove: '✖'
 }	
 const actions = {

@@ -1,28 +1,20 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="utf-8">
 		<link rel="stylesheet" href="popup.css"/>
 	</head>
 	<body>
 		<img src="../icons/96.png"/>
 		<h3>Search Engine<br>Spam Blocker</h3>
-		<br>
 		<div class="settings">
-			<label class="switch"><input type="checkbox" id="enabled"><div></div></label><span><b>Enable blocking</b></span>
-			<br><br>
-		</div>
-		<div id="to-hide">
-			<div class="settings">
-				<label class="switch"><input type="checkbox" id="show-blocked"><div></div></label><span>Show blocked results</span>
-				<br>
-				<label class="switch"><input type="checkbox" id="show-block-buttons"><div></div></label><span>Show block buttons</span>
-				<br>
-				<label class="switch"><input type="checkbox" id="enable-default-blocklist"><div></div></label><span>Enable default blocklist</span>
+			<label><input type="checkbox" id="enabled"><div></div></label><span><b>Enable blocking</b></span>
+			<div id="to-hide">
+				<label><input type="checkbox" id="show-blocked"><div></div></label><span>Show blocked results</span>
+				<label><input type="checkbox" id="show-block-buttons"><div></div></label><span>Show block buttons</span>
+				<label><input type="checkbox" id="enable-default-blocklist"><div></div></label><span>Enable built-in blocklist</span>
 			</div>
-			<br>
-			<button id="manage-your-blocklist">Other settings</button>
 		</div>
+		<button id="manage-your-blocklist">Other settings</button>
 		<script src="../background/constants.js"></script>
 		<script src="popup.js"></script>
 	</body>

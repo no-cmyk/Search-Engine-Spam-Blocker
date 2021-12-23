@@ -12,7 +12,7 @@ button {
 	cursor: pointer;
 	padding: 3px 14px 4px 14px;
 	border: none;
-	background-color: darkorange;
+	background: darkorange;
 	border-radius: 1em;
 }
 
@@ -37,15 +37,16 @@ img {
 
 .settings {
 	text-align: left;
+	padding: 12px 0 16px 0;
 }
 
-.switch input {
+input {
 	position: absolute;
 	opacity: 0;
 	cursor: pointer;
 }
 
-.switch {
+label {
 	display: inline-block;
 	width: 1.6em;
 	background: bisque;
@@ -53,14 +54,14 @@ img {
 	cursor: pointer;
 }
 
-.switch div {
+label div {
 	height: 0.8em;
 	width: 0.8em;
 	border-radius: 0.8em;
 	background: black;
 }
 
-.switch input:checked + div {
+input:checked + div {
 	transform: translate3d(100%, 0, 0);
 	background: darkorange;
 }

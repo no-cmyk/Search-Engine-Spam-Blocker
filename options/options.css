@@ -1,12 +1,11 @@
 body {
 	font-family: sans-serif;
 	color: darkorange;
+	padding: 15px;
 }
 
 img {
 	width: 48px;
-	padding-left: 15px;
-	padding-top: 15px;
 }
 
 button {
@@ -68,7 +67,7 @@ textarea {
 }
 
 .section {
-	padding: 15px;
+	padding: 0 15px;
 }
 
 .subsection {

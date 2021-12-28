@@ -1,1 +1,0 @@
-You can report bugs by either creating an issue here on GitHub or writing to sesbextension@protonmail.com

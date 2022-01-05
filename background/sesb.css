@@ -20,6 +20,8 @@
 	padding: 0 4px;
 	line-break: anywhere;
 	font-style: italic;
+	font-weight: normal;
+	font-family: sans-serif;
 }
 
 .sesb-block-div button:hover, .sesb-unblock-div button:hover {

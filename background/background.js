@@ -1,7 +1,6 @@
 'use strict'
 let defaultBlocklist
 let suffixList
-let privateSuffixList
 let needsUpdate = false
 let optionsPageBlocklistUpdated = true
 let optionsPageWhitelistUpdated = true
@@ -83,30 +82,27 @@ function handleMessages(message, sender) {
 
 function checkUrl(url) {
 	const urlArray = url.split('.')
-	let noSubUrl
-	let privateUrl
+	let domains = []
+	let toRemove = false
 	if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
 		for (let i = 0; i < urlArray.length; i++) {
 			const toCheck = urlArray.slice(i, urlArray.length).join('.')
-			if (privateSuffixList[toCheck]) {
-				privateUrl = urlArray.slice(i-1, urlArray.length).join('.')
-			} else if (suffixList[toCheck]) {
-				noSubUrl = urlArray.slice(i-1, urlArray.length).join('.')
-				break
+			if (!suffixList[toCheck]) {
+				domains.push(toCheck)
 			}
 		}
 	} else {
-		noSubUrl = url
+		domains.push(urlArray.slice(0, urlArray.length - 1).join('.'))
+		domains.push(url)
 	}
-	let toRemove
-	if (whitelist[noSubUrl] || whitelist[url] || (privateUrl !== undefined && whitelist[privateUrl])) {
-		toRemove = false
-	} else {
-		toRemove = activeSettings.enableDefaultBlocklist === 1 ? 
-			(defaultBlocklist[noSubUrl] || defaultBlocklist[url] || yourBlocklist[noSubUrl] || yourBlocklist[url] || (privateUrl !== undefined && (defaultBlocklist[privateUrl] || yourBlocklist[privateUrl])))
-			: (yourBlocklist[noSubUrl] || yourBlocklist[url] || (privateUrl !== undefined && yourBlocklist[privateUrl]))
+	for (const domain of domains) {
+		if (whitelist[domain]) {
+			break
+		} else if (yourBlocklist[domain] || (activeSettings.enableDefaultBlocklist === 1 && defaultBlocklist[domain])) {
+			toRemove = true
+		}
 	}
-	return {toRemove: toRemove, domain: noSubUrl, privateDomain: privateUrl}
+	return {toRemove: toRemove, domains: domains}
 }
 
 /*--- Your blocklist ---*/
@@ -135,7 +131,7 @@ function updateYourBlocklist(url) {
 function updateMultiple(domains) {
 	const sanitizedDomains = sanitizeDomains(domains, false)
 	for (let i = 0; i < sanitizedDomains.length; i++) {
-		if (defaultBlocklist[sanitizedDomains[i]] === undefined && whitelist[sanitizedDomains[i]] === undefined) {
+		if (whitelist[sanitizedDomains[i]] === undefined) {
 			yourBlocklist[sanitizedDomains[i]] = true
 		}
 	}
@@ -228,15 +224,11 @@ async function loadYourBlocklist() {
 
 function retainSuffixList(text) {
 	suffixList = {}
-	privateSuffixList = {}
+	let unlistedSuffixes = fetchUnlistedSuffixesList(5)
 	let validText = []
 	let sanitizedText = []
-	let validTextPrivate = []
-	let sanitizedTextPrivate = []
-	let privateDomainsStart
 	for (let i = 0; i < text.length; i++) {
 		if (text[i].includes('END ICANN DOMAINS')) {
-			privateDomainsStart = i
 			break
 		} else if (text[i].startsWith('*') || text[i].startsWith('!')) {
 			validText.push(text[i].substring(2))
@@ -244,26 +236,14 @@ function retainSuffixList(text) {
 			validText.push(text[i])
 		}
 	}
-	for (let i = privateDomainsStart; i < text.length; i++) {
-		if (text[i].startsWith('*') || text[i].startsWith('!')) {
-			validTextPrivate.push(text[i].substring(2))
-		} else if (text[i] !== '' && !text[i].startsWith('/')) {
-			validTextPrivate.push(text[i])
-		}
-	}
 	sanitizedText = sanitizeDomains(validText, true)
-	sanitizedTextPrivate = sanitizeDomains(validTextPrivate, true)
 	for (let i = 0; i < sanitizedText.length; i++) {
 		suffixList[sanitizedText[i]] = true
-	}
-	for (let i = 0; i < sanitizedTextPrivate.length; i++) {
-		privateSuffixList[sanitizedTextPrivate[i]] = true
 	}
 	for (let i = 0; i < unlistedSuffixes.length; i++) {
 		suffixList[unlistedSuffixes[i]] = true
 	}
 	browser.storage.local.set({sesbSuffixList: JSON.stringify(suffixList)})
-	browser.storage.local.set({sesbPrivateSuffixList: JSON.stringify(privateSuffixList)})
 	console.log('Suffix list OK')
 }
 
@@ -306,12 +286,18 @@ function fetchSuffixList(tries) {
 		.then((text) => retainSuffixList(text.split('\n')))
 }
 
+function fetchUnlistedSuffixesList(tries) {
+	return fetch('https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt')
+		.then((r) => retryFetch(r, tries, fetchUnlistedSuffixesList))
+		.then((response) => response.text())
+		.then((text) => text.split('\n'))
+}
+
 async function checkIfNeedsUpdate() {
 	const lastUpdate = await browser.storage.local.get(storedVars.lastUpdate).then((r) => r.sesbLastUpdate)
 	suffixList = await browser.storage.local.get(storedVars.suffixList).then((r) => r.sesbSuffixList)
-	privateSuffixList = await browser.storage.local.get(storedVars.privateSuffixList).then((r) => r.sesbPrivateSuffixList)
 	defaultBlocklist = await browser.storage.local.get(storedVars.blocklist).then((r) => r.sesbBlocklist)
-	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || privateSuffixList === undefined || Date.now() - lastUpdate > 86400000) {
+	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || Date.now() - lastUpdate > 86400000) {
 		needsUpdate = true
 	}
 }

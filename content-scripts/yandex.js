@@ -71,8 +71,8 @@ async function handleResult(e) {
 	if (response.toRemove === true) {
 		e.classList.add(css.blocked)
 	}
-	addBlockButtons(e, url, response.domain, response.privateDomain, response.toRemove)
-	addUnblockButtons(e, url, response.domain, response.privateDomain, response.toRemove)
+	addBlockButtons(e, response.domains, response.toRemove)
+	addUnblockButtons(e, response.domains, response.toRemove)
 }
 
 function getUrl(e) {
@@ -81,32 +81,22 @@ function getUrl(e) {
 
 /*---Add block/unblock buttons---*/
 
-function addBlockButtons(e, url, domain, privateDomain, toRemove) {
+function addBlockButtons(e, domains, toRemove) {
 	const div = document.createElement('div')
 	div.classList.add(css.blockDiv, css.hidden)
 	div.innerText = texts.block
-	if (domain !== undefined) {
-		createBlockButton(domain, div, e)
-	}
-	if (privateDomain !== undefined && privateDomain !== url) {
-		createBlockButton(privateDomain, div, e)
-	}
-	if (url !== domain) {
-		createBlockButton(url, div, e)
+	for (let i = domains.length - 1; i >= 0; i--) {
+		createBlockButton(domains[i], div, e)
 	}
 	e.prepend(div)
 }
 
-function addUnblockButtons(e, url, domain, privateDomain, toRemove) {
+function addUnblockButtons(e, domains, toRemove) {
 	const div = document.createElement('div')
 	div.classList.add(css.unblockDiv, css.hidden)
 	div.innerText = texts.unblock
-	createUnblockButton(domain, div, e, false)
-	if (privateDomain !== undefined && privateDomain !== url) {
-		createUnblockButton(privateDomain, div, e, false)
-	}
-	if (url !== domain) {
-		createUnblockButton(url, div, e, true)
+	for (let i = domains.length - 1; i >= 0; i--) {
+		createUnblockButton(domains[i], div, e, i !== 0)
 	}
 	e.prepend(div)
 }

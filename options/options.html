@@ -7,47 +7,37 @@
 	</head>
 	<body>
 		<img src="../icons/96.png"/>
-		<div class="section">
-			<h3>Manage your blocklist</h3>
-			<ul id="your-blocklist"></ul>
-			<a href=""><button id="export">Export</button></a>
-			<button class="dangerous" id="clear-blocklist">Clear</button>
-		</div>
-		<div class="subsection">
-			<br>
-			<h4>Write domains to block</h4>
-			<h5>One domain per line, no wildcards</h5>
-			<br>
-			<textarea id="add-domains-textarea"></textarea>
-			<br>
-			<button id="add-domains-button">Block domains</button>
-			<br><br>
-			<h4>Import blocklist from file</h4>
-			<h5>One domain per line, no wildcards</h5>
-			<br>
-			<input id="import" type="file" accept=".txt">
-		</div>
-		<div class="section">
-			<h3>Manage your whitelist</h3>
-			<ul id="whitelist"></ul>
-		</div>
-		<div class="subsection">
-			<h4>Write domains to whitelist</h4>
-			<h5>One domain per line, no wildcards</h5>
-			<br>
-			<textarea id="whitelist-domains-textarea"></textarea>
-			<br>
-			<button id="whitelist-domains-button">Whitelist domains</button>
-		</div>
-		</div>
-		<div class="section">
-			<br>
-			<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocker">Source code</a>
-			<br>
-			<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocklist">Built-in blocklist</a>
-			<button id="update-spam-lists">Update</button>
-			<span class="result-ok" id="result-ok">OK ;)</span>
-		</div>
+		<h3>Manage your blocklist</h3>
+		<ul id="your-blocklist"></ul>
+		<a href=""><button id="export">Export</button></a>
+		<button class="dangerous" id="clear-blocklist">Clear</button>
+		<br><br>
+		<h4>Write domains to block</h4>
+		<h5>One domain per line, no wildcards</h5>
+		<br>
+		<textarea id="add-domains-textarea"></textarea>
+		<br>
+		<button id="add-domains-button">Block domains</button>
+		<br><br>
+		<h4>Import blocklist from file</h4>
+		<h5>One domain per line, no wildcards</h5>
+		<br>
+		<input id="import" type="file" accept=".txt">
+		<br><br><br>
+		<h3>Manage your whitelist</h3>
+		<ul id="whitelist"></ul>
+		<h4>Write domains to whitelist</h4>
+		<h5>One domain per line, no wildcards</h5>
+		<br>
+		<textarea id="whitelist-domains-textarea"></textarea>
+		<br>
+		<button id="whitelist-domains-button">Whitelist domains</button>
+		<br><br><br>
+		<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocker">Source code</a>
+		<br>
+		<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocklist">Built-in blocklist</a>
+		<button id="update-spam-lists">Update</button>
+		<span class="result-ok" id="result-ok">OK ;)</span>
 		<script src="../background/constants.js"></script>
 		<script src="options.js"></script>
 	</body>

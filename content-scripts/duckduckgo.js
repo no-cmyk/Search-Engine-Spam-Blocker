@@ -19,10 +19,7 @@ async function update() {
 	if (settings === undefined) {
 		settings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	}
-	for (const e of document.querySelectorAll(allResults + '\,.' + textResultDetails)) {
-		if (e.classList.contains(textResultDetails)) {
-			continue
-		}
+	for (const e of document.querySelectorAll(allResults)) {
 		let blockDiv = e.querySelector('.' + css.blockDiv)
 		let unblockDiv = e.querySelector('.' + css.unblockDiv)
 		if (blockDiv === null || unblockDiv === null) {
@@ -33,10 +30,18 @@ async function update() {
 			blockDiv.classList.add(css.hidden)
 			unblockDiv.classList.add(css.hidden)
 		} else if (e.classList.contains(css.blocked)) {
-			settings.showBlocked === 1 ? (e.classList.remove(css.hidden), e.classList.add(css.blockedShow)) : (e.classList.remove(css.blockedShow), e.classList.add(css.hidden))
+			if (settings.showBlocked === 1) {
+				e.style.setProperty('background', 'lightcoral', 'important')
+				e.classList.remove(css.hidden)
+				e.classList.add(css.blockedShow)
+			} else {
+				e.classList.remove(css.blockedShow)
+				e.classList.add(css.hidden)
+			}
 			blockDiv.classList.add(css.hidden)
 			unblockDiv.classList.remove(css.hidden)
 		} else {
+			e.style.removeProperty('background')
 			e.classList.remove(css.hidden, css.blockedShow)
 			blockDiv.classList.toggle(css.hidden, settings.showButtons === 0)
 			unblockDiv.classList.add(css.hidden)

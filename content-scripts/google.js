@@ -69,6 +69,7 @@ function shouldHandle(e) {
 	if (!e.classList.contains(textResultMobile)) {
 		return !e.classList.contains('mnr-c')
 			&& !e.classList.contains('g-blk')
+			&& !e.classList.contains('gadasb')
 			&& !e.parentElement.id.startsWith('WEB_ANSWERS_')
 			&& e.querySelectorAll('.xpc\,.kp-wholepage').length === 0
 	}

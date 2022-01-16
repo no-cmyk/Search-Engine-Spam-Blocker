@@ -1,5 +1,5 @@
 .sesb-blocked-show {
-	background-color: lightcoral !important;
+	background: lightcoral !important;
 	outline: 3px solid lightcoral !important;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .sesb-block-div button:hover, .sesb-unblock-div button:hover {
-	text-shadow: 0 0 2px pink;
+	text-shadow: 0 0 2px firebrick;
 }
 
 .sesb-block-div button:focus, .sesb-unblock-div button:focus {

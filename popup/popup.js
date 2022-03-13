@@ -6,7 +6,7 @@ function handleClicks(click) {
 	switch (click.srcElement.id) {
 		case html.enabled:
 			activeSettings.enabled ^= true
-			showOrHideSettings()
+			document.getElementById(html.toHide).style.opacity = activeSettings.enabled === 0 ? 0.5 : 1
 			updateSettings()
 			break
 		case html.showBlocked:
@@ -40,17 +40,7 @@ function handleNullSettings(savedSettings) {
 	document.getElementById(html.showBlocked).checked = activeSettings.showBlocked
 	document.getElementById(html.showBlockButtons).checked = activeSettings.showButtons
 	document.getElementById(html.enableDefaultBlocklist).checked = activeSettings.enableDefaultBlocklist
-	showOrHideSettings()
-}
-
-function showOrHideSettings() {
-	if (activeSettings.enabled === 0) {
-		browser.browserAction.setIcon({path: "../icons/32_off.png"})
-		document.getElementById(html.toHide).style.opacity = 0.5
-	} else {
-		browser.browserAction.setIcon({path: "../icons/32.png"})
-		document.getElementById(html.toHide).style.opacity = 1
-	}
+	document.getElementById(html.toHide).style.opacity = activeSettings.enabled === 0 ? 0.5 : 1
 }
 
 browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))

@@ -1,9 +1,7 @@
 'use strict'
 let defaultBlocklist
 let suffixList
-let needsUpdate = false
-let optionsPageBlocklistUpdated = true
-let optionsPageWhitelistUpdated = true
+let optionsPageListsUpdated = false
 let yourBlocklist = {}
 let whitelist = {}
 const workerUrl = browser.runtime.getURL('background/worker.js')
@@ -21,15 +19,13 @@ function handleMessages(message, sender) {
 		case actions.check:
 			return Promise.resolve(checkUrl(message.url))
 		case actions.update:
-			return Promise.resolve(updateYourBlocklist(message.url))
+			return block(message.url)
 		case actions.unblock:
-			return Promise.resolve(unblock(message.url, message.isSub))
+			return unblock(message.url, false)
 		case actions.updateMultiple:
-			optionsPageBlocklistUpdated = false
-			doWithWorker(function(){updateMultiple(message.url)})
+			doWithWorker(function(){blockMultiple(message.url)})
 			break
 		case actions.whitelistMultiple:
-			optionsPageWhitelistUpdated = false
 			doWithWorker(function(){whitelistMultiple(message.url)})
 			break
 		case actions.loadYourBlocklist:
@@ -37,8 +33,7 @@ function handleMessages(message, sender) {
 		case actions.loadWhitelist:
 			return Promise.resolve(Object.getOwnPropertyNames(whitelist).sort())
 		case actions.updateSpamLists:
-			needsUpdate = true
-			updateLists()
+			doWithWorker(function(){updateOnlineLists(true)})
 			break
 		case actions.remove:
 			removeFromYourBlocklist(message.url)
@@ -46,25 +41,15 @@ function handleMessages(message, sender) {
 		case actions.removeFromWhitelist:
 			removeFromWhitelist(message.url)
 			break
-		case actions.removeFromWhitelistAndUpdate:
-			removeFromWhitelist(message.url)
-			updateYourBlocklist(message.url)
-			break
 		case actions.clearBlocklist:
 			clearBlocklist()
 			break
 		case actions.reloadSettings:
 			loadSettings()
 			break
-		case actions.checkOptionsBlocklistUpdated:
-			if (optionsPageBlocklistUpdated === true) {
-				optionsPageBlocklistUpdated = false
-				return Promise.resolve(true)
-			}
-			return Promise.resolve(false)
-		case actions.checkOptionsWhitelistUpdated:
-			if (optionsPageWhitelistUpdated === true) {
-				optionsPageWhitelistUpdated = false
+		case actions.checkOptionsListsUpdated:
+			if (optionsPageListsUpdated) {
+				optionsPageListsUpdated = false
 				return Promise.resolve(true)
 			}
 			return Promise.resolve(false)
@@ -83,7 +68,6 @@ function handleMessages(message, sender) {
 function checkUrl(url) {
 	const urlArray = url.split('.')
 	let domains = []
-	let toRemove = false
 	if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
 		for (let i = 0; i < urlArray.length; i++) {
 			const toCheck = urlArray.slice(i, urlArray.length).join('.')
@@ -95,14 +79,16 @@ function checkUrl(url) {
 		domains.push(urlArray.slice(0, urlArray.length - 1).join('.'))
 		domains.push(url)
 	}
+	let blocked
+	let whitelisted
 	for (const domain of domains) {
-		if (whitelist[domain]) {
-			break
-		} else if (yourBlocklist[domain] || (activeSettings.enableDefaultBlocklist === 1 && defaultBlocklist[domain])) {
-			toRemove = true
+		if (yourBlocklist[domain] || (activeSettings.enableDefaultBlocklist === 1 && defaultBlocklist[domain])) {
+			blocked = domain
+		} else if (whitelist[domain]) {
+			whitelisted = domain
 		}
 	}
-	return {toRemove: toRemove, domains: domains}
+	return {toRemove: blocked !== undefined && (whitelisted === undefined || !whitelisted.endsWith('.' + blocked)), whitelisted: whitelisted !== undefined, domains: domains}
 }
 
 /*--- Your blocklist ---*/
@@ -117,26 +103,43 @@ function clearBlocklist() {
 	browser.storage.local.set({sesbYourBlocklist: undefined})
 }
 
-function updateYourBlocklist(url) {
-	let whitelisted = false
-	if (whitelist[url]) {
-		whitelisted = true
-	} else if (defaultBlocklist[url] === undefined) {
-		yourBlocklist[url] = true
-		browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
-	}
-	return {whitelisted: whitelisted}
-}
-
-function updateMultiple(domains) {
-	const sanitizedDomains = sanitizeDomains(domains, false)
-	for (let i = 0; i < sanitizedDomains.length; i++) {
-		if (whitelist[sanitizedDomains[i]] === undefined) {
-			yourBlocklist[sanitizedDomains[i]] = true
+function block(toBlock) {
+	const blocklistProps = Object.getOwnPropertyNames(yourBlocklist)
+	const whitelistProps = Object.getOwnPropertyNames(whitelist)
+	let blockedSubdomain
+	let whitelistedDomainOrUpperDomain = false
+	for (const whitelisted of whitelistProps) {
+		if (toBlock === whitelisted || toBlock.endsWith('.' + whitelisted)) {
+			whitelistedDomainOrUpperDomain = true
+			break
 		}
 	}
-	optionsPageBlocklistUpdated = true
+	for (const blocked of blocklistProps) {
+		if (blocked.endsWith('.' + toBlock)) {
+			blockedSubdomain = blocked
+			break
+		} else if (toBlock === blocked || toBlock.endsWith('.' + blocked)) {
+			return Promise.resolve(true)
+		}
+	}
+	if (blockedSubdomain !== undefined) {
+		delete yourBlocklist[blockedSubdomain]
+		yourBlocklist[toBlock] = true
+	}
+	if (!whitelistedDomainOrUpperDomain) {
+		yourBlocklist[toBlock] = true
+	}
 	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
+	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
+	return Promise.resolve(true)
+}
+
+function blockMultiple(domains) {
+	const sanitizedDomains = sanitizeDomains(domains, false)
+	for (const domain of sanitizedDomains) {
+		block(domain)
+	}
+	optionsPageListsUpdated = true
 }
 
 /*--- Whitelist ---*/
@@ -146,65 +149,57 @@ function removeFromWhitelist(url) {
 	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
 }
 
-function whitelistDomain(domain) {
-	whitelist[domain] = true
-	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
-}
-
 function whitelistMultiple(domains) {
 	const sanitizedDomains = sanitizeDomains(domains, false)
-	for (let i = 0; i < sanitizedDomains.length; i++) {
-		whitelist[sanitizedDomains[i]] = true
+	for (const domain of sanitizedDomains) {
+		unblock(domain, true)
 	}
-	optionsPageWhitelistUpdated = true
-	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
+	optionsPageListsUpdated = true
 }
 
 /*--- Unblock ---*/
 
-function unblock(url, isSub) {
-	doWithWorker(function(){unblockWithWorker(url, isSub)})
-}
-
-function unblockWithWorker(url, isSub) {
-	const yourBlocklistProps = Object.getOwnPropertyNames(yourBlocklist)
-	const defaultBlocklistProps = Object.getOwnPropertyNames(defaultBlocklist)
-	if (isSub === true) {
-		for (let i = 0; i < yourBlocklistProps.length; i++) {
-			// Attempting to unblock subdomain w/ domain blocked in your blocklist
-			if (url.endsWith(yourBlocklistProps[i]) && url !== yourBlocklistProps[i]) {
-				whitelistDomain(url)
-			// Attempting to unblock subdomain w/ subdomain blocked in your blocklist
-			} else if (url === yourBlocklistProps[i]) {
-				removeFromYourBlocklist(url)
-			}
-		}
-		for (let i = 0; i < defaultBlocklistProps.length; i++) {
-			// Attempting to unblock subdomain w/ domain or subdomain blocked in default blocklist
-			if (url.endsWith(defaultBlocklistProps[i])) {
-				whitelistDomain(url)
-			}
-		}
-	} else {
-		for (let i = 0; i < yourBlocklistProps.length; i++) {
-			// Attempting to unblock domain w/ domain or subdomain blocked in your blocklist
-			if (yourBlocklistProps[i].endsWith(url)) {
-				removeFromYourBlocklist(yourBlocklistProps[i])
-			}
-		}
-		for (let i = 0; i < defaultBlocklistProps.length; i++) {
-			// Attempting to unblock domain w/ domain or subdomain blocked in default blocklist
-			if (defaultBlocklistProps[i].endsWith(url)) {
-				whitelistDomain(defaultBlocklistProps[i])
-			}
+function unblock(toUnblock, mustBeWhitelisted) {
+	const blocklistProps = Object.getOwnPropertyNames(yourBlocklist)
+	const whitelistProps = Object.getOwnPropertyNames(whitelist)
+	let whitelistedSubdomain
+	let blockedDomainOrSubdomain
+	let blockedUpperDomain = false
+	for (const whitelisted of whitelistProps) {
+		if (whitelisted !== toUnblock && whitelisted.endsWith('.' + toUnblock)) {
+			whitelistedSubdomain = whitelisted
+		}  else if (toUnblock === whitelisted || toUnblock.endsWith('.' + whitelisted)) {
+			return Promise.resolve(true)
 		}
 	}
+	for (const blocked of blocklistProps) {
+		if (blocked === toUnblock || blocked.endsWith('.' + toUnblock)) {
+			blockedDomainOrSubdomain = blocked
+		} else if (toUnblock.endsWith('.' + blocked)) {
+			blockedUpperDomain = true
+		}
+	}
+	if (whitelistedSubdomain !== undefined && mustBeWhitelisted) {
+		delete whitelist[whitelistedSubdomain]
+	}
+	if (blockedDomainOrSubdomain !== undefined) {
+		delete yourBlocklist[blockedDomainOrSubdomain]
+	} else if (blockedUpperDomain) {
+		whitelist[toUnblock] = true
+	}
+	if (mustBeWhitelisted) {
+		whitelist[toUnblock] = true
+	}
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
+	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
+	return Promise.resolve(true)
 }
 
 /*--- Automatic update ---*/
 
 function handleNullSettings(savedSettings) {
 	activeSettings = savedSettings === undefined ? defaultSettings : savedSettings
+	browser.browserAction.setIcon({path: activeSettings.enabled === 0 ? "../icons/32_off.png" : "../icons/32.png"})
 }
 
 function loadSettings() {
@@ -297,23 +292,20 @@ async function checkIfNeedsUpdate() {
 	const lastUpdate = await browser.storage.local.get(storedVars.lastUpdate).then((r) => r.sesbLastUpdate)
 	suffixList = await browser.storage.local.get(storedVars.suffixList).then((r) => r.sesbSuffixList)
 	defaultBlocklist = await browser.storage.local.get(storedVars.blocklist).then((r) => r.sesbBlocklist)
-	if (lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || Date.now() - lastUpdate > 86400000) {
-		needsUpdate = true
-	}
+	return lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || Date.now() - lastUpdate > 86400000
 }
 
 async function updateLists() {
-	const needsUpdateSettings = await checkIfNeedsUpdate()
-	doWithWorker(updateOnlineLists)
+	const needsUpdate = await checkIfNeedsUpdate()
+	doWithWorker(function(){updateOnlineLists(needsUpdate)})
 }
 
-function updateOnlineLists() {
+function updateOnlineLists(needsUpdate) {
 	if (needsUpdate) {
 		console.log('Updating lists...')
 		fetchSuffixList(5)
 		fetchDefaultBlocklist(5)
 		browser.storage.local.set({sesbLastUpdate: Date.now()})
-		needsUpdate = false
 	} else {
 		console.log('Loading cached lists')
 		suffixList = JSON.parse(suffixList)
@@ -444,5 +436,6 @@ function sanitizeDomains(domains, skipRegex) {
 	return sanitizedDomains
 }
 
-updateLists()
 loadSettings()
+updateLists()
+setInterval(updateLists, 600000)

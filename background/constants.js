@@ -52,7 +52,6 @@ const regex = {
 	urlRegexWithArrow: /^http.*:\/\/|\/.*$|:\d+|\s›.*/g
 }
 const texts = {
-	blockAlert: 'This domain must be removed from your whitelist in order to be blocked.\nDo you want to proceed?',
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
 	removeFromBlocklist: 'Remove this domain from your blocklist?',
 	removeFromWhitelist: 'Remove this domain from your whitelist?',
@@ -62,20 +61,18 @@ const texts = {
 }	
 const actions = {
 	check: 1,
-	checkOptionsBlocklistUpdated: 2,
-	checkOptionsWhitelistUpdated: 3,
+	getActiveSettings: 2,
+	checkOptionsListsUpdated: 3,
 	clearBlocklist: 4,
 	loadWhitelist: 5,
 	loadYourBlocklist: 6,
 	reloadSettings: 7,
 	remove: 8,
 	removeFromWhitelist: 9,
-	removeFromWhitelistAndUpdate: 10,
-	unblock: 11,
-	update: 12,
-	updateMultiple: 13,
-	updateSpamLists: 14,
-	whitelistMultiple: 15,
-	updateBadge: 16,
-	getActiveSettings: 17
+	unblock: 10,
+	update: 11,
+	updateMultiple: 12,
+	updateSpamLists: 13,
+	whitelistMultiple: 14,
+	updateBadge: 15
 }

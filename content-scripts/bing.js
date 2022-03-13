@@ -1,6 +1,6 @@
 'use strict'
 let settings
-const done = {}
+let done = {}
 const textResult = 'b_algo'
 const imgResult = 'imgpt'
 const allResults = '.' + textResult + '\,.' + imgResult
@@ -45,8 +45,10 @@ async function update() {
 
 function scanResults() {
 	for (const e of document.querySelectorAll(allResults)) {
-		if (!done[e.getAttribute(css.sesbId)]) {
+		if (e.getAttribute(css.sesbId) === null) {
 			e.setAttribute(css.sesbId, Math.random())
+		}
+		if (!done[e.getAttribute(css.sesbId)]) {
 			done[e.getAttribute(css.sesbId)] = true
 			handleResult(e)
 		}
@@ -63,11 +65,15 @@ async function handleResult(e) {
 	if (response === undefined) {
 		return
 	}
-	if (response.toRemove === true) {
+	if (response.toRemove === true && !e.classList.contains(css.blocked)) {
 		e.classList.add(css.blocked)
 	}
-	addBlockButtons(e, response.domains, response.toRemove)
-	addUnblockButtons(e, response.domains, response.toRemove)
+	if (e.querySelector('.' + css.blockDiv) === null) {
+		addButton(e, response.domains, true, response.toRemove === false)
+	}
+	if (e.querySelector('.' + css.unblockDiv) === null) {
+		addButton(e, response.domains, false, response.toRemove === true)
+	}
 }
 
 function getUrl(e) {
@@ -83,64 +89,32 @@ function getUrl(e) {
 
 /*---Add block/unblock buttons---*/
 
-function addBlockButtons(e, domains, toRemove) {
+function addButton(e, domains, block, toHide) {
 	const div = document.createElement('div')
-	div.classList.add(css.blockDiv, css.hidden)
-	div.innerText = texts.block
+	div.classList.add(block === true ? css.blockDiv : css.unblockDiv)
+	if (toHide === true) {
+		div.classList.add(css.hidden)
+
+	}
+	div.innerText = block === true ? texts.block : texts.unblock
 	for (let i = domains.length - 1; i >= 0; i--) {
-		createBlockButton(domains[i], div, e)
+		const button = document.createElement('button')
+		button.innerText = domains[i]
+		button.addEventListener('click', function(){updateResults(domains[i], block)})
+		div.appendChild(button)
 	}
 	e.parentElement.parentElement.style.display = 'inline-table'
 	e.prepend(div)
 }
 
-function addUnblockButtons(e, domains, toRemove) {
-	const div = document.createElement('div')
-	div.classList.add(css.unblockDiv, css.hidden)
-	div.innerText = texts.unblock
-	for (let i = domains.length - 1; i >= 0; i--) {
-		createUnblockButton(domains[i], div, e, i !== 0)
-	}
-	e.parentElement.parentElement.style.display = 'inline-table'
-	e.prepend(div)
-}
-
-function createBlockButton(url, div, e) {
-	const button = document.createElement('button')
-	button.innerText = url
-	button.addEventListener('click', function(){browser.runtime.sendMessage({action: actions.update, url: url}).then((resp) => findAndBlock(resp, url))})
-	div.appendChild(button)
-}
-
-function createUnblockButton(url, div, e, isSub) {
-	const button = document.createElement('button')
-	button.innerText = url
-	button.addEventListener('click', function(){browser.runtime.sendMessage({action: actions.unblock, url: url, isSub: isSub}).then((resp) => findAndUnblock(resp, url))})
-	div.appendChild(button)
-}
-
-/*---Block/unblock search results---*/
-
-function findAndBlock(response, url) {
-	if (response.whitelisted === true) {
-		if (!confirm(texts.blockAlert)) {
-			return
-		}
-		browser.runtime.sendMessage({action: actions.removeFromWhitelistAndUpdate, url: url})
-	}
-	for (const e of document.querySelectorAll(allResults)) {
-		if (getUrl(e).endsWith(url)) {
-			e.classList.add(css.blocked)
+async function updateResults(url, block) {
+	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url})
+	if (block === false) {
+		for (const e of document.querySelectorAll(allResults)) {
+			e.classList.remove(css.blocked, css.blockedShow)
 		}
 	}
-	update()
-}
-
-function findAndUnblock(response, url) {
-	for (const e of document.querySelectorAll(allResults)) {
-		if (getUrl(e).endsWith(url)) {
-			e.classList.remove(css.blocked)
-		}
-	}
-	update()
+	done = {}
+	scanResults()
+	setTimeout(update, 200)
 }

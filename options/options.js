@@ -13,7 +13,7 @@ const interval = 2000
 addListeners()
 
 function addListeners() {
-	loadLists(true, true)
+	loadLists()
 	document.addEventListener('click', handleClicks)
 	importElem.addEventListener('change', handleFile)
 	listElem.addEventListener('scroll', scrollBlocklist)
@@ -38,6 +38,7 @@ function handleClicks(click) {
 			break
 		case html.addDomainsButton:
 			listElem.innerHTML = ''
+			whitelistElem.innerHTML = ''
 			addDomainsToBlocklist(textareaElem.value)
 			textareaElem.value = ''
 			break
@@ -50,6 +51,7 @@ function handleClicks(click) {
 			}
 			break
 		case html.whitelistDomainsButton:
+			listElem.innerHTML = ''
 			whitelistElem.innerHTML = ''
 			whitelistDomains(textareaWhitelistElem.value)
 			textareaWhitelistElem.value = ''
@@ -110,26 +112,13 @@ function populateBlocklist() {
 }
 
 function addDomainsToBlocklist(domains) {
-	let domainsToAdd = domains.split('\n')
-	browser.runtime.sendMessage({action: actions.updateMultiple, url: domainsToAdd})
-	checkBlocklistUpdated()
+	browser.runtime.sendMessage({action: actions.updateMultiple, url: domains.split('\n')})
+	checkListsUpdated()
 }
 
 function whitelistDomains(domains) {
-	whitelistDomainsAsList = domains.split('\n')
-	browser.runtime.sendMessage({action: actions.whitelistMultiple, url: whitelistDomainsAsList})
-	checkWhitelistUpdated()
-}
-
-async function loadLists(loadBlock, loadWhite) {
-	if (loadBlock === true) {
-		domainsAsList = await browser.runtime.sendMessage({action: actions.loadYourBlocklist})
-		populateBlocklist()
-	}
-	if (loadWhite === true) {
-		whitelistDomainsAsList = await browser.runtime.sendMessage({action: actions.loadWhitelist})
-		populateWhitelist()
-	}
+	browser.runtime.sendMessage({action: actions.whitelistMultiple, url: domains.split('\n')})
+	checkListsUpdated()
 }
 
 function removeFromYourBlocklist(li) {
@@ -145,24 +134,20 @@ function removeFromWhitelist(li) {
 	li.remove()
 }
 
-async function checkBlocklistUpdated() {
-	let updated = false
-	while (updated === false) {
-		await new Promise(resolve => setTimeout(resolve, 400))
-		updated = await browser.runtime.sendMessage({action: actions.checkOptionsBlocklistUpdated})
-		if (updated === true) {
-			loadLists(true, false)
-		}
-	}
+async function loadLists() {
+	domainsAsList = await browser.runtime.sendMessage({action: actions.loadYourBlocklist})
+	populateBlocklist()
+	whitelistDomainsAsList = await browser.runtime.sendMessage({action: actions.loadWhitelist})
+	populateWhitelist()
 }
 
-async function checkWhitelistUpdated() {
+async function checkListsUpdated() {
 	let updated = false
 	while (updated === false) {
 		await new Promise(resolve => setTimeout(resolve, 400))
-		updated = await browser.runtime.sendMessage({action: actions.checkOptionsWhitelistUpdated})
+		updated = await browser.runtime.sendMessage({action: actions.checkOptionsListsUpdated})
 		if (updated === true) {
-			loadLists(false, true)
+			loadLists()
 		}
 	}
 }

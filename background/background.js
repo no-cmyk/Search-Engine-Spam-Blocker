@@ -219,7 +219,6 @@ async function loadYourBlocklist() {
 
 function retainSuffixList(text) {
 	suffixList = {}
-	let unlistedSuffixes = fetchUnlistedSuffixesList(5)
 	let validText = []
 	let sanitizedText = []
 	for (let i = 0; i < text.length; i++) {
@@ -235,11 +234,16 @@ function retainSuffixList(text) {
 	for (let i = 0; i < sanitizedText.length; i++) {
 		suffixList[sanitizedText[i]] = true
 	}
-	for (let i = 0; i < unlistedSuffixes.length; i++) {
-		suffixList[unlistedSuffixes[i]] = true
-	}
 	browser.storage.local.set({sesbSuffixList: JSON.stringify(suffixList)})
 	console.log('Suffix list OK')
+}
+
+function retainUnlistedSuffixesList(text) {
+	for (let i = 0; i < text.length; i++) {
+		suffixList[text[i]] = true
+	}
+	browser.storage.local.set({sesbSuffixList: JSON.stringify(suffixList)})
+	console.log('Unlisted suffixes list OK')
 }
 
 function retainDefaultBlocklist(text) {
@@ -285,7 +289,7 @@ function fetchUnlistedSuffixesList(tries) {
 	return fetch('https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt')
 		.then((r) => retryFetch(r, tries, fetchUnlistedSuffixesList))
 		.then((response) => response.text())
-		.then((text) => text.split('\n'))
+		.then((text) => retainUnlistedSuffixesList(text.split('\n')))
 }
 
 async function checkIfNeedsUpdate() {
@@ -304,6 +308,7 @@ function updateOnlineLists(needsUpdate) {
 	if (needsUpdate) {
 		console.log('Updating lists...')
 		fetchSuffixList(5)
+		fetchUnlistedSuffixesList(5)
 		fetchDefaultBlocklist(5)
 		browser.storage.local.set({sesbLastUpdate: Date.now()})
 	} else {

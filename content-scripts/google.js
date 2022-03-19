@@ -74,10 +74,11 @@ function shouldHandle(e) {
 			&& !e.classList.contains('gadasb')
 			&& !e.parentElement.id.startsWith('WEB_ANSWERS_')
 			&& e.querySelectorAll('.xpc\,.kp-wholepage').length === 0
+			&& !e.parentElement.parentElement.parentElement.parentElement.parentElement.classList.contains(textResult)
 	}
 	return e.firstElementChild.firstElementChild !== null
 		&& e.querySelectorAll(allTextResults).length === 0
-		&& e.firstElementChild.firstElementChild.nodeName === 'A' 
+		&& e.firstElementChild.firstElementChild.nodeName === 'A'
 		&& e.parentElement.parentElement.nodeName !== 'FOOTER'
 }
 
@@ -90,14 +91,12 @@ async function handleResult(e) {
 	if (response === undefined) {
 		return
 	}
-	if (response.toRemove === true && !e.classList.contains(css.blocked)) {
-		e.classList.add(css.blocked)
-	}
-	if (e.querySelector('.' + css.blockDiv) === null) {
-		addButton(e, response.domains, true, response.toRemove === false)
+	e.classList.toggle(css.blocked, response.toRemove === true)
+	if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
+		addButton(e, response.domains, true, response.toRemove)
 	}
 	if (e.querySelector('.' + css.unblockDiv) === null) {
-		addButton(e, response.domains, false, response.toRemove === true)
+		addButton(e, response.domains, false, response.toRemove)
 	}
 }
 
@@ -109,11 +108,9 @@ function getUrl(e) {
 
 function addButton(e, domains, block, toHide) {
 	const div = document.createElement('div')
-	div.classList.add(block === true ? css.blockDiv : css.unblockDiv)
-	if (toHide === true) {
-		div.classList.add(css.hidden)
-	}
-	div.innerText = block === true ? texts.block : texts.unblock
+	div.classList.toggle(css.hidden, toHide)
+	div.classList.add(block ? css.blockDiv : css.unblockDiv)
+	div.innerText = block ? texts.block : texts.unblock
 	for (let i = domains.length - 1; i >= 0; i--) {
 		const button = document.createElement('button')
 		button.innerText = domains[i]

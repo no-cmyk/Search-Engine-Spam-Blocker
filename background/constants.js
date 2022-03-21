@@ -8,7 +8,6 @@ const defaultSettings = {
 const storedVars = {
 	blocklist: 'sesbBlocklist',
 	lastUpdate: 'sesbLastUpdate',
-	privateSuffixList: 'sesbPrivateSuffixList',
 	suffixList: 'sesbSuffixList'
 }
 const storedResources = {
@@ -53,8 +52,6 @@ const regex = {
 }
 const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
-	removeFromBlocklist: 'Remove this domain from your blocklist?',
-	removeFromWhitelist: 'Remove this domain from your whitelist?',
 	block: 'Block:',
 	unblock: 'Unblock:',
 	remove: '✖'

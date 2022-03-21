@@ -61,10 +61,10 @@ async function handleResult(e) {
 	}
 	e.classList.toggle(css.blocked, response.toRemove === true)
 	if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
-		addButton(e, response.domains, true, response.toRemove)
+		addButton(e, response.domains, true)
 	}
 	if (e.querySelector('.' + css.unblockDiv) === null) {
-		addButton(e, response.domains, false, response.toRemove)
+		addButton(e, response.domains, false)
 	}
 }
 
@@ -74,11 +74,11 @@ function getUrl(e) {
 
 /*---Add block/unblock buttons---*/
 
-function addButton(e, domains, block, toHide) {
+function addButton(e, domains, block) {
 	const div = document.createElement('div')
-	div.classList.add(block === true ? css.blockDiv : css.unblockDiv)
-	div.classList.toggle(css.hidden, toHide)
-	div.innerText = block === true ? texts.block : texts.unblock
+	div.classList.add(block ? css.blockDiv : css.unblockDiv)
+	div.classList.add(css.hidden)
+	div.innerText = block ? texts.block : texts.unblock
 	for (let i = domains.length - 1; i >= 0; i--) {
 		const button = document.createElement('button')
 		button.innerText = domains[i]

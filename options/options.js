@@ -85,7 +85,6 @@ function populateWhitelist() {
 		const removeBtn = document.createElement('span')
 		removeBtn.id = html.domainWhitelist
 		removeBtn.innerText = texts.remove
-		removeBtn.title = texts.removeFromWhitelist
 		li.innerText = whitelistDomainsAsList[i]
 		li.prepend(removeBtn)
 		c.appendChild(li)
@@ -103,7 +102,6 @@ function populateBlocklist() {
 		const removeBtn = document.createElement('span')
 		removeBtn.id = html.domain
 		removeBtn.innerText = texts.remove
-		removeBtn.title = texts.removeFromBlocklist
 		li.innerText = domainsAsList[i]
 		li.prepend(removeBtn)
 		c.appendChild(li)

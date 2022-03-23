@@ -4,6 +4,10 @@ body {
 	padding: 15px;
 }
 
+div {
+	padding-left: 25px;
+}
+
 img {
 	width: 48px;
 }

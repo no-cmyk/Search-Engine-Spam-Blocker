@@ -1,19 +1,24 @@
 'use strict'
 const defaultSettings = {
 	enabled: 1,
-	enableDefaultBlocklist: 1,
 	showBlocked: 0,
 	showButtons: 0
 }
+const defaultBlocklist = {
+	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
+}
 const storedVars = {
-	blocklist: 'sesbBlocklist',
 	lastUpdate: 'sesbLastUpdate',
 	suffixList: 'sesbSuffixList'
 }
 const storedResources = {
 	settings: 'sesbSettings',
 	whitelist: 'sesbWhitelist',
-	yourBlocklist: 'sesbYourBlocklist'
+	yourBlocklist: 'sesbYourBlocklist',
+	remoteDomainBlocklist: 'sesbRemoteDomainBlocklist',
+	remoteBlocklists: 'sesbRemoteBlocklists',
+	remoteDomainWhitelist: 'sesbRemoteDomainWhitelist',
+	remoteWhitelists: 'sesbRemoteWhitelists'
 }
 const css = {
 	blockDiv: 'sesb-block-div',
@@ -28,11 +33,16 @@ const css = {
 const html = {
 	addDomainsButton: 'add-domains-button',
 	addDomainsTextarea: 'add-domains-textarea',
+	addBlocklistUrlsTextarea: 'add-blocklist-urls-textarea',
+	addBlocklistUrlsButton: 'add-blocklist-urls-button',
+	yourRemoteBlocklists: 'your-remote-blocklists',
+	addWhitelistUrlsTextarea: 'add-whitelist-urls-textarea',
+	addWhitelistUrlsButton: 'add-whitelist-urls-button',
+	yourRemoteWhitelists: 'your-remote-whitelists',
 	clearBlocklist: 'clear-blocklist',
 	domain: 'domain',
 	domainWhitelist: 'domain-whitelist',
 	enabled: 'enabled',
-	enableDefaultBlocklist: 'enable-default-blocklist',
 	export: 'export',
 	import: 'import',
 	manageYourBlocklist: 'manage-your-blocklist',
@@ -44,7 +54,10 @@ const html = {
 	whitelist: 'whitelist',
 	whitelistDomainsButton: 'whitelist-domains-button',
 	whitelistDomainsTextarea: 'whitelist-domains-textarea',
-	yourBlocklist: 'your-blocklist'
+	yourBlocklist: 'your-blocklist',
+	remoteBlocklist: 'remote-blocklist',
+	yourWhitelist: 'your-whitelist',
+	remoteWhitelist: 'remote-whitelist'
 }
 const regex = {
 	urlRegex: /^http.*:\/\/|\/.*$|:\d+/g,
@@ -71,5 +84,11 @@ const actions = {
 	updateMultiple: 12,
 	updateSpamLists: 13,
 	whitelistMultiple: 14,
-	updateBadge: 15
+	updateBadge: 15,
+	loadRemoteBlocklists: 16,
+	removeFromRemoteBlocklists: 17,
+	loadRemoteWhitelists: 18,
+	removeFromRemoteWhitelists: 19,
+	addBlocklistsFromUrls: 20,
+	addWhitelistsFromUrls: 21
 }

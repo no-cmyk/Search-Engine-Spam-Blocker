@@ -3,7 +3,7 @@
 	outline: 3px solid lightcoral !important;
 }
 
-.sesb-block-div, .sesb-unblock-div {
+.sesb-block-div, .sesb-unblock-div, .sesb-by-remote {
 	color: firebrick;
 	font-weight: bold;
 	font-size: 12px;

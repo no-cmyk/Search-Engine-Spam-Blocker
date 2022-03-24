@@ -7,12 +7,9 @@ const defaultSettings = {
 const defaultBlocklist = {
 	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
 }
-const storedVars = {
-	lastUpdate: 'sesbLastUpdate',
-	suffixList: 'sesbSuffixList'
-}
 const storedResources = {
 	settings: 'sesbSettings',
+	suffixList: 'sesbSuffixList',
 	whitelist: 'sesbWhitelist',
 	yourBlocklist: 'sesbYourBlocklist',
 	remoteDomainBlocklist: 'sesbRemoteDomainBlocklist',
@@ -28,7 +25,8 @@ const css = {
 	fixImageSize: 'sesb-fix-image-size',
 	hidden: 'sesb-hidden',
 	sesbId: 'sesb-id',
-	blocked: 'sesb-blocked'
+	blocked: 'sesb-blocked',
+	byRemote: 'sesb-by-remote'
 }
 const html = {
 	addDomainsButton: 'add-domains-button',
@@ -67,7 +65,9 @@ const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
 	block: 'Block:',
 	unblock: 'Unblock:',
-	remove: '✖'
+	remove: '✖',
+	blockedByRemote: 'Blocked by ',
+	whitelistedByRemote: 'Whitelisted by '
 }	
 const actions = {
 	check: 1,

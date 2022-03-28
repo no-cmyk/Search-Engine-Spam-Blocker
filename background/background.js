@@ -296,16 +296,14 @@ async function updateLists() {
 		whitelist = JSON.parse(whitelistJson)
 	}
 	if (remoteBlocklistsJson) {
-		remoteBlocklists = JSON.parse(remoteBlocklistsJson)
+		for (const url of Object.keys(JSON.parse(remoteBlocklistsJson))) {
+			fetchRemoteBlocklist(url)
+		}
 	}
 	if (remoteWhitelistsJson) {
-		remoteWhitelists = JSON.parse(remoteWhitelistsJson)
-	}
-	for (const url of Object.keys(remoteBlocklists)) {
-		fetchRemoteBlocklist(url)
-	}
-	for (const url of Object.keys(remoteWhitelists)) {
-		fetchRemoteWhitelist(url)
+		for (const url of Object.keys(JSON.parse(remoteWhitelistsJson))) {
+			fetchRemoteWhitelist(url)
+		}
 	}
 	fetchSuffixList(5, null)
 }
@@ -343,7 +341,6 @@ function retainRemoteBlocklist(text, list) {
 	for (let i = 0; i < text.length; i++) {
 		remoteDomainBlocklist[text[i]] = list
 	}
-	browser.storage.local.set({sesbRemoteDomainBlocklist: JSON.stringify(remoteDomainBlocklist)})
 	console.log('Remote blocklist OK')
 }
 
@@ -352,7 +349,6 @@ function retainRemoteWhitelist(text, list) {
 	for (let i = 0; i < text.length; i++) {
 		remoteDomainWhitelist[text[i]] = list
 	}
-	browser.storage.local.set({sesbRemoteDomainWhitelist: JSON.stringify(remoteDomainWhitelist)})
 	console.log('Remote whitelist OK')
 }
 

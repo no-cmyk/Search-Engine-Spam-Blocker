@@ -22,10 +22,13 @@ async function update() {
 		}
 		let blockDiv = e.querySelector('.' + css.blockDiv)
 		let unblockDiv = e.querySelector('.' + css.unblockDiv)
-		if (blockDiv === null || unblockDiv === null) {
+		let byRemote = e.querySelector('.' + css.byRemote)
+		if ((blockDiv === null || unblockDiv === null) && byRemote === null) {
 			continue
-		}
-		if (settings.enabled === 0) {
+		} else if (byRemote !== null) {
+			byRemote.classList.toggle(css.hidden, settings.enabled === 0 || settings.showButtons === 0)
+			continue
+		} else if (settings.enabled === 0) {
 			e.classList.remove(css.hidden, css.blockedShow)
 			blockDiv.classList.add(css.hidden)
 			unblockDiv.classList.add(css.hidden)
@@ -74,6 +77,13 @@ async function handleResult(e) {
 		return
 	}
 	e.classList.toggle(css.blocked, response.toRemove === true)
+	if (response.inRemoteBlocklist !== undefined) {
+		addBanner(e, response.inRemoteBlocklist, true)
+		return
+	} else if (response.inRemoteWhitelist !== undefined) {
+		addBanner(e, response.inRemoteWhitelist, false)
+		return
+	}
 	if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
 		addButton(e, response.domains, true)
 	}
@@ -87,6 +97,14 @@ function getUrl(e) {
 }
 
 /*---Add block/unblock buttons---*/
+
+function addBanner(e, listUrl, block) {
+	const div = document.createElement('div')
+	div.classList.add(css.byRemote)
+	div.innerText = (block ? texts.blockedByRemote : texts.whitelistedByRemote) + listUrl
+	e.classList.add(css.fixHeight)
+	e.append(div)
+}
 
 function addButton(e, domains, block) {
 	const div = document.createElement('div')

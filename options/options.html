@@ -7,56 +7,64 @@
 	</head>
 	<body>
 		<img src="../icons/96.png"/>
-		<h3>Manage your blocklists</h3>
+		<h2>Manage blocklists</h2>
 		<div>
 			<br>
-			<h4>Your local blocklist</h4>
-			<ul id="your-blocklist"></ul>
-			<a href=""><button id="export">Export</button></a>
-			<button class="dangerous" id="clear-blocklist">Clear</button>
-			<br><br>
-			<h4>Write domains to block</h4>
-			<h5>One domain per line, no wildcards</h5>
-			<br>
-			<textarea id="add-domains-textarea"></textarea>
-			<br>
-			<button id="add-domains-button">Block domains</button>
-			<br><br>
-			<h4>Import blocklist from file</h4>
-			<h5>One domain per line, no wildcards</h5>
-			<br>
-			<input id="import" type="file" accept=".txt">
+			<h3>Local blocklist</h3>
+			<div>
+				<ul id="your-blocklist"></ul>
+				<a href=""><button id="export">Export</button></a>
+				<button class="dangerous" id="clear-blocklist">Clear</button>
+				<br><br>
+				<h4>Write domains to block</h4>
+				<h5>One domain per line, no wildcards</h5>
+				<br>
+				<textarea id="add-domains-textarea"></textarea>
+				<br>
+				<button id="add-domains-button">Block domains</button>
+				<br><br>
+				<h4>Import blocklist from file</h4>
+				<h5>One domain per line, no wildcards</h5>
+				<br>
+				<input id="import" type="file" accept=".txt">
+			</div>
 			<br><br><br>
-			<h4>Your remote blocklists</h4>
-			<ul id="your-remote-blocklists"></ul>
-			<h4>Import blocklists from URLs</h4>
-			<h5>One URL per line</h5>
-			<br>
-			<textarea id="add-blocklist-urls-textarea"></textarea>
-			<br>
-			<button id="add-blocklist-urls-button">Add lists</button>
+			<h3>Remote blocklists</h3>
+			<div>
+				<ul id="your-remote-blocklists" class="ul-remote"></ul>
+				<h4>Import blocklists from URLs</h4>
+				<h5>One URL per line</h5>
+				<br>
+				<textarea id="add-blocklist-urls-textarea"></textarea>
+				<br>
+				<button id="add-blocklist-urls-button">Add lists</button>
+			</div>
 			<br><br><br>
 		</div>
-		<h3>Manage your whitelists</h3>
+		<h2>Manage whitelists</h2>
 		<div>
 			<br>
-			<h4>Your local whitelist</h4>
-			<ul id="whitelist"></ul>
-			<h4>Write domains to whitelist</h4>
-			<h5>One domain per line, no wildcards</h5>
-			<br>
-			<textarea id="whitelist-domains-textarea"></textarea>
-			<br>
-			<button id="whitelist-domains-button">Whitelist domains</button>
+			<h3>Local whitelist</h3>
+			<div>
+				<ul id="whitelist"></ul>
+				<h4>Write domains to whitelist</h4>
+				<h5>One domain per line, no wildcards</h5>
+				<br>
+				<textarea id="whitelist-domains-textarea"></textarea>
+				<br>
+				<button id="whitelist-domains-button">Whitelist domains</button>
+			</div>
 			<br><br><br>
-			<h4>Your remote whitelists</h4>
-			<ul id="your-remote-whitelists"></ul>
-			<h4>Import whitelists from URLs</h4>
-			<h5>One URL per line</h5>
-			<br>
-			<textarea id="add-whitelist-urls-textarea"></textarea>
-			<br>
-			<button id="add-whitelist-urls-button">Add lists</button>
+			<h3>Remote whitelists</h3>
+			<div>
+				<ul id="your-remote-whitelists" class="ul-remote"></ul>
+				<h4>Import whitelists from URLs</h4>
+				<h5>One URL per line</h5>
+				<br>
+				<textarea id="add-whitelist-urls-textarea"></textarea>
+				<br>
+				<button id="add-whitelist-urls-button">Add lists</button>
+			</div>
 			<br><br><br>
 		</div>
 		<button id="update-spam-lists">Force lists update</button>

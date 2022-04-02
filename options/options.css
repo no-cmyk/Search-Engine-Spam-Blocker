@@ -48,6 +48,10 @@ ul {
 	cursor: default !important;
 }
 
+.ul-remote {
+	background-color: lightblue;
+}
+
 li {
 	padding: 2px;
 }

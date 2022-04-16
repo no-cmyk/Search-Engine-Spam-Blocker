@@ -1,0 +1,5 @@
+﻿*.web-extension-id
+web-ext-artifacts
+*.xpi
+*.bat
+*.ps1

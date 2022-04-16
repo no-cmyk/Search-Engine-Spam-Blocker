@@ -27,11 +27,13 @@ async function update() {
 			continue
 		} else if (byRemote !== null) {
 			byRemote.classList.toggle(css.hidden, settings.enabled === 0 || settings.showButtons === 0)
-			continue
-		} else if (settings.enabled === 0) {
+		}
+		if (settings.enabled === 0) {
 			e.classList.remove(css.hidden, css.blockedShow)
-			blockDiv.classList.add(css.hidden)
-			unblockDiv.classList.add(css.hidden)
+			if (blockDiv !== null) {
+				blockDiv.classList.add(css.hidden)
+				unblockDiv.classList.add(css.hidden)
+			}
 		} else if (e.classList.contains(css.blocked)) {
 			if (settings.showBlocked === 1) {
 				e.style.setProperty('background', 'lightcoral', 'important')
@@ -41,13 +43,17 @@ async function update() {
 				e.classList.remove(css.blockedShow)
 				e.classList.add(css.hidden)
 			}
-			blockDiv.classList.add(css.hidden)
-			unblockDiv.classList.remove(css.hidden)
+			if (blockDiv !== null) {
+				blockDiv.classList.add(css.hidden)
+				unblockDiv.classList.remove(css.hidden)
+			}
 		} else {
 			e.style.removeProperty('background')
 			e.classList.remove(css.hidden, css.blockedShow)
-			blockDiv.classList.toggle(css.hidden, settings.showButtons === 0)
-			unblockDiv.classList.add(css.hidden)
+			if (blockDiv !== null) {
+				blockDiv.classList.toggle(css.hidden, settings.showButtons === 0)
+				unblockDiv.classList.add(css.hidden)
+			}
 		}
 	}
 	browser.runtime.sendMessage({action: actions.updateBadge, blockedNumber: settings.enabled === 1 ? document.querySelectorAll('.' + css.blocked).length : 0})

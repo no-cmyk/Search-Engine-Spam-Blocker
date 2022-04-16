@@ -12,9 +12,7 @@ const storedResources = {
 	suffixList: 'sesbSuffixList',
 	whitelist: 'sesbWhitelist',
 	yourBlocklist: 'sesbYourBlocklist',
-	remoteDomainBlocklist: 'sesbRemoteDomainBlocklist',
 	remoteBlocklists: 'sesbRemoteBlocklists',
-	remoteDomainWhitelist: 'sesbRemoteDomainWhitelist',
 	remoteWhitelists: 'sesbRemoteWhitelists'
 }
 const css = {

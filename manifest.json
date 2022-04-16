@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "1.7.2",
+	"version": "1.8.1",
 	"description": "Block sites from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/search-engine-spam-blocker",
 	"icons": {
@@ -63,7 +63,10 @@
 	},
 	"permissions": [
 		"storage",
-		"unlimitedStorage"
+		"unlimitedStorage",
+	    "<all_urls>",
+	    "cookies",
+	    "tabs"
 	],
 	"web_accessible_resources": ["background/worker.js"],
 	"browser_action": {

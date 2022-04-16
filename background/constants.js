@@ -1,19 +1,19 @@
 'use strict'
 const defaultSettings = {
 	enabled: 1,
-	enableDefaultBlocklist: 1,
 	showBlocked: 0,
 	showButtons: 0
 }
-const storedVars = {
-	blocklist: 'sesbBlocklist',
-	lastUpdate: 'sesbLastUpdate',
-	suffixList: 'sesbSuffixList'
+const defaultBlocklist = {
+	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
 }
 const storedResources = {
 	settings: 'sesbSettings',
+	suffixList: 'sesbSuffixList',
 	whitelist: 'sesbWhitelist',
-	yourBlocklist: 'sesbYourBlocklist'
+	yourBlocklist: 'sesbYourBlocklist',
+	remoteBlocklists: 'sesbRemoteBlocklists',
+	remoteWhitelists: 'sesbRemoteWhitelists'
 }
 const css = {
 	blockDiv: 'sesb-block-div',
@@ -23,16 +23,22 @@ const css = {
 	fixImageSize: 'sesb-fix-image-size',
 	hidden: 'sesb-hidden',
 	sesbId: 'sesb-id',
-	blocked: 'sesb-blocked'
+	blocked: 'sesb-blocked',
+	byRemote: 'sesb-by-remote'
 }
 const html = {
 	addDomainsButton: 'add-domains-button',
 	addDomainsTextarea: 'add-domains-textarea',
+	addBlocklistUrlsTextarea: 'add-blocklist-urls-textarea',
+	addBlocklistUrlsButton: 'add-blocklist-urls-button',
+	yourRemoteBlocklists: 'your-remote-blocklists',
+	addWhitelistUrlsTextarea: 'add-whitelist-urls-textarea',
+	addWhitelistUrlsButton: 'add-whitelist-urls-button',
+	yourRemoteWhitelists: 'your-remote-whitelists',
 	clearBlocklist: 'clear-blocklist',
 	domain: 'domain',
 	domainWhitelist: 'domain-whitelist',
 	enabled: 'enabled',
-	enableDefaultBlocklist: 'enable-default-blocklist',
 	export: 'export',
 	import: 'import',
 	manageYourBlocklist: 'manage-your-blocklist',
@@ -44,7 +50,10 @@ const html = {
 	whitelist: 'whitelist',
 	whitelistDomainsButton: 'whitelist-domains-button',
 	whitelistDomainsTextarea: 'whitelist-domains-textarea',
-	yourBlocklist: 'your-blocklist'
+	yourBlocklist: 'your-blocklist',
+	remoteBlocklist: 'remote-blocklist',
+	yourWhitelist: 'your-whitelist',
+	remoteWhitelist: 'remote-whitelist'
 }
 const regex = {
 	urlRegex: /^http.*:\/\/|\/.*$|:\d+/g,
@@ -54,7 +63,9 @@ const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
 	block: 'Block:',
 	unblock: 'Unblock:',
-	remove: '✖'
+	remove: '✖',
+	blockedByRemote: 'Blocked by ',
+	whitelistedByRemote: 'Whitelisted by '
 }	
 const actions = {
 	check: 1,
@@ -71,5 +82,11 @@ const actions = {
 	updateMultiple: 12,
 	updateSpamLists: 13,
 	whitelistMultiple: 14,
-	updateBadge: 15
+	updateBadge: 15,
+	loadRemoteBlocklists: 16,
+	removeFromRemoteBlocklists: 17,
+	loadRemoteWhitelists: 18,
+	removeFromRemoteWhitelists: 19,
+	addBlocklistsFromUrls: 20,
+	addWhitelistsFromUrls: 21
 }

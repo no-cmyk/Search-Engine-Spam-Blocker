@@ -1,9 +1,12 @@
 'use strict'
-let defaultBlocklist
-let suffixList
+let suffixList = {}
 let optionsPageListsUpdated = false
 let yourBlocklist = {}
 let whitelist = {}
+let remoteBlockedDomains = {}
+let remoteBlocklists = {}
+let remoteWhitelistedDomains = {}
+let remoteWhitelists = {}
 const workerUrl = browser.runtime.getURL('background/worker.js')
 let activeSettings
 browser.runtime.onMessage.addListener(handleMessages)
@@ -23,15 +26,19 @@ function handleMessages(message, sender) {
 		case actions.unblock:
 			return unblock(message.url, false)
 		case actions.updateMultiple:
-			doWithWorker(function(){blockMultiple(message.url)})
+			doWithWorker(function(){blockMultiple(message.urls)})
 			break
 		case actions.whitelistMultiple:
-			doWithWorker(function(){whitelistMultiple(message.url)})
+			doWithWorker(function(){whitelistMultiple(message.urls)})
 			break
 		case actions.loadYourBlocklist:
-			return Promise.resolve(Object.getOwnPropertyNames(yourBlocklist).sort())
+			return Promise.resolve(Object.keys(yourBlocklist).sort())
 		case actions.loadWhitelist:
-			return Promise.resolve(Object.getOwnPropertyNames(whitelist).sort())
+			return Promise.resolve(Object.keys(whitelist).sort())
+		case actions.loadRemoteBlocklists:
+			return Promise.resolve(Object.keys(remoteBlocklists).sort())
+		case actions.loadRemoteWhitelists:
+			return Promise.resolve(Object.keys(remoteWhitelists).sort())
 		case actions.updateSpamLists:
 			doWithWorker(function(){updateOnlineLists(true)})
 			break
@@ -58,6 +65,18 @@ function handleMessages(message, sender) {
 			break
 		case actions.getActiveSettings:
 			return Promise.resolve(activeSettings)
+		case actions.addBlocklistsFromUrls:
+			doWithWorker(function(){addRemoteBlocklists(message.urls)})
+			break
+		case actions.removeFromRemoteBlocklists:
+			removeFromRemoteBlocklists(message.url)
+			break
+		case actions.addWhitelistsFromUrls:
+			doWithWorker(function(){addRemoteWhitelists(message.urls)})
+			break
+		case actions.removeFromRemoteWhitelists:
+			removeFromRemoteWhitelists(message.url)
+			break
 		default:
 			break
 	}
@@ -81,14 +100,26 @@ function checkUrl(url) {
 	}
 	let blocked
 	let whitelisted
+	let remoteBlocklist
+	let remoteWhitelist
 	for (const domain of domains) {
-		if (yourBlocklist[domain] || (activeSettings.enableDefaultBlocklist === 1 && defaultBlocklist[domain])) {
+		if (remoteBlockedDomains[domain]) {
+			remoteBlocklist = remoteBlockedDomains[domain]
 			blocked = domain
-		} else if (whitelist[domain]) {
+		} else if (remoteWhitelistedDomains[domain]) {
+			remoteWhitelist = remoteWhitelistedDomains[domain]
+			whitelisted = domain
+		} else if (yourBlocklist[domain]) {
+			blocked = domain
+		} else if (whitelist[domain] || remoteWhitelistedDomains[domain]) {
 			whitelisted = domain
 		}
 	}
-	return {toRemove: blocked !== undefined && (whitelisted === undefined || !whitelisted.endsWith('.' + blocked)), whitelisted: whitelisted !== undefined, domains: domains}
+	return {toRemove: blocked !== undefined && (whitelisted === undefined || !whitelisted.endsWith('.' + blocked)),
+		whitelisted: whitelisted !== undefined,
+		domains: domains,
+		inRemoteBlocklist: remoteBlocklist,
+		inRemoteWhitelist: remoteWhitelist}
 }
 
 /*--- Your blocklist ---*/
@@ -104,8 +135,8 @@ function clearBlocklist() {
 }
 
 function block(toBlock) {
-	const blocklistProps = Object.getOwnPropertyNames(yourBlocklist)
-	const whitelistProps = Object.getOwnPropertyNames(whitelist)
+	const blocklistProps = Object.keys(yourBlocklist)
+	const whitelistProps = Object.keys(whitelist)
 	let blockedSubdomain
 	let whitelistedDomainOrUpperDomain = false
 	for (const whitelisted of whitelistProps) {
@@ -135,7 +166,7 @@ function block(toBlock) {
 }
 
 function blockMultiple(domains) {
-	const sanitizedDomains = sanitizeDomains(domains, false)
+	const sanitizedDomains = sanitizeDomains(domains, false, false)
 	for (const domain of sanitizedDomains) {
 		block(domain)
 	}
@@ -150,18 +181,50 @@ function removeFromWhitelist(url) {
 }
 
 function whitelistMultiple(domains) {
-	const sanitizedDomains = sanitizeDomains(domains, false)
+	const sanitizedDomains = sanitizeDomains(domains, false, false)
 	for (const domain of sanitizedDomains) {
 		unblock(domain, true)
 	}
 	optionsPageListsUpdated = true
 }
 
+/*--- Remote blocklists ---*/
+
+function addRemoteBlocklists(urls) {
+	for (const url of urls) {
+		fetchRemoteBlocklist(5, url)
+	}
+	browser.storage.local.set({sesbRemoteBlocklists: JSON.stringify(remoteBlocklists)})
+	optionsPageListsUpdated = true
+}
+
+function removeFromRemoteBlocklists(url) {
+	delete remoteBlocklists[url]
+	browser.storage.local.set({sesbRemoteBlocklists: JSON.stringify(remoteBlocklists)})
+	updateLists()
+}
+
+/*--- Remote whitelists ---*/
+
+function addRemoteWhitelists(urls) {
+	for (const url of urls) {
+		fetchRemoteWhitelist(5, url)
+	}
+	browser.storage.local.set({sesbRemoteWhitelists: JSON.stringify(remoteWhitelists)})
+	optionsPageListsUpdated = true
+}
+
+function removeFromRemoteWhitelists(url) {
+	delete remoteWhitelists[url]
+	browser.storage.local.set({sesbRemoteWhitelists: JSON.stringify(remoteWhitelists)})
+	updateLists()
+}
+
 /*--- Unblock ---*/
 
 function unblock(toUnblock, mustBeWhitelisted) {
-	const blocklistProps = Object.getOwnPropertyNames(yourBlocklist)
-	const whitelistProps = Object.getOwnPropertyNames(whitelist)
+	const blocklistProps = Object.keys(yourBlocklist)
+	const whitelistProps = Object.keys(whitelist)
 	let whitelistedSubdomain
 	let blockedDomainOrSubdomain
 	let blockedUpperDomain = false
@@ -206,19 +269,40 @@ function loadSettings() {
 	browser.storage.local.get(storedResources.settings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
-async function loadYourBlocklist() {
+async function updateLists() {
+	suffixList = {}
+	yourBlocklist = {}
+	whitelist = {}
+	remoteBlocklists = {}
+	remoteWhitelists = {}
+	remoteBlockedDomains = {}
+	remoteWhitelistedDomains = {}
+	const suffixListJson = await browser.storage.local.get(storedResources.suffixList).then((r) => r.sesbSuffixList)
 	const yourBlocklistJson = await browser.storage.local.get(storedResources.yourBlocklist).then((r) => r.sesbYourBlocklist)
 	const whitelistJson = await browser.storage.local.get(storedResources.whitelist).then((r) => r.sesbWhitelist)
+	let remoteBlocklistsJson = await browser.storage.local.get(storedResources.remoteBlocklists).then((r) => r.sesbRemoteBlocklists)
+	const remoteWhitelistsJson = await browser.storage.local.get(storedResources.remoteWhitelists).then((r) => r.sesbRemoteWhitelists)
 	if (yourBlocklistJson) {
 		yourBlocklist = JSON.parse(yourBlocklistJson)
 	}
 	if (whitelistJson) {
 		whitelist = JSON.parse(whitelistJson)
 	}
+	if (remoteBlocklistsJson === undefined) {
+		remoteBlocklistsJson = JSON.stringify(defaultBlocklist)
+	}
+	for (const url of Object.keys(JSON.parse(remoteBlocklistsJson))) {
+		fetchRemoteBlocklist(5, url)
+	}
+	if (remoteWhitelistsJson) {
+		for (const url of Object.keys(JSON.parse(remoteWhitelistsJson))) {
+			fetchRemoteWhitelist(5, url)
+		}
+	}
+	fetchSuffixList(5, null)
 }
 
 function retainSuffixList(text) {
-	suffixList = {}
 	let validText = []
 	let sanitizedText = []
 	for (let i = 0; i < text.length; i++) {
@@ -230,7 +314,7 @@ function retainSuffixList(text) {
 			validText.push(text[i])
 		}
 	}
-	sanitizedText = sanitizeDomains(validText, true)
+	sanitizedText = sanitizeDomains(validText, true, false)
 	for (let i = 0; i < sanitizedText.length; i++) {
 		suffixList[sanitizedText[i]] = true
 	}
@@ -246,23 +330,43 @@ function retainUnlistedSuffixesList(text) {
 	console.log('Unlisted suffixes list OK')
 }
 
-function retainDefaultBlocklist(text) {
-	defaultBlocklist = {}
+function retainRemoteBlocklist(text, url) {
+	text = sanitizeDomains(text, false, true)
 	for (let i = 0; i < text.length; i++) {
-		defaultBlocklist[text[i]] = true
+		remoteBlockedDomains[text[i]] = url
 	}
-	browser.storage.local.set({sesbBlocklist: JSON.stringify(defaultBlocklist)})
-	console.log('Blocklist OK')
+	remoteBlocklists[url] = true
+	browser.storage.local.set({sesbRemoteBlocklists: JSON.stringify(remoteBlocklists)})
+	console.log('Remote blocklist ' + url + ' OK')
 }
 
-function wait(delay){
+function retainRemoteWhitelist(text, url) {
+	text = sanitizeDomains(text, false, true)
+	for (let i = 0; i < text.length; i++) {
+		remoteWhitelistedDomains[text[i]] = url
+	}
+	remoteWhitelists[url] = true
+	browser.storage.local.set({sesbRemoteWhitelists: JSON.stringify(remoteWhitelists)})
+	console.log('Remote whitelist ' + url + ' OK')
+}
+
+function wait(delay) {
 	return new Promise((resolve) => setTimeout(resolve, delay))
 }
 
-function retryFetch(response, tries, functionToRetry) {
+function closeTab(tab) {
+	return wait(8000).then(() => browser.tabs.remove(tab.id))
+}
+
+function retryFetch(response, tries, functionToRetry, url) {
 	if (!response.ok) {
+		console.log("Retrying " + url)
 		if (tries !== 0) {
-			return wait(4000).then(() => functionToRetry(tries - 1))
+			if (response.status === 503) {
+				let tab = browser.tabs.create({url: url})
+				tab.then((t) => closeTab(t))
+			}
+			return wait(8000).then(() => url === null ? functionToRetry(tries - 1) : functionToRetry(tries - 1, url))
 		} else {
 			throw Error(response.statusText)
 		}
@@ -270,53 +374,33 @@ function retryFetch(response, tries, functionToRetry) {
 	return response
 }
 
-function fetchDefaultBlocklist(tries) {
-	return fetch('https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt')
-		.then((r) => retryFetch(r, tries, fetchDefaultBlocklist))
-		.then((response) => response.text())
-		.then((text) => retainDefaultBlocklist(text.split('\n')))
-}
-
 function fetchSuffixList(tries) {
-	// Cannot pull from publicsuffix.org/list/public_suffix_list.dat due to a CORS header missing
-	return fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
-		.then((r) => retryFetch(r, tries, fetchSuffixList))
+	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
+		.then((r) => retryFetch(r, tries, fetchSuffixList, null))
 		.then((response) => response.text())
 		.then((text) => retainSuffixList(text.split('\n')))
+		.then(fetchUnlistedSuffixesList(5, null))
 }
 
 function fetchUnlistedSuffixesList(tries) {
-	return fetch('https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt')
-		.then((r) => retryFetch(r, tries, fetchUnlistedSuffixesList))
+	fetch('https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt')
+		.then((r) => retryFetch(r, tries, fetchUnlistedSuffixesList, null))
 		.then((response) => response.text())
 		.then((text) => retainUnlistedSuffixesList(text.split('\n')))
 }
 
-async function checkIfNeedsUpdate() {
-	const lastUpdate = await browser.storage.local.get(storedVars.lastUpdate).then((r) => r.sesbLastUpdate)
-	suffixList = await browser.storage.local.get(storedVars.suffixList).then((r) => r.sesbSuffixList)
-	defaultBlocklist = await browser.storage.local.get(storedVars.blocklist).then((r) => r.sesbBlocklist)
-	return lastUpdate === undefined || suffixList === undefined || defaultBlocklist === undefined || Date.now() - lastUpdate > 86400000
+function fetchRemoteBlocklist(tries, url) {
+	fetch(url)
+		.then((r) => retryFetch(r, tries, fetchRemoteBlocklist, url))
+		.then((response) => response.text())
+		.then((text) => retainRemoteBlocklist(text.split('\n'), url))
 }
 
-async function updateLists() {
-	const needsUpdate = await checkIfNeedsUpdate()
-	doWithWorker(function(){updateOnlineLists(needsUpdate)})
-}
-
-function updateOnlineLists(needsUpdate) {
-	if (needsUpdate) {
-		console.log('Updating lists...')
-		fetchSuffixList(5)
-		fetchUnlistedSuffixesList(5)
-		fetchDefaultBlocklist(5)
-		browser.storage.local.set({sesbLastUpdate: Date.now()})
-	} else {
-		console.log('Loading cached lists')
-		suffixList = JSON.parse(suffixList)
-		defaultBlocklist = JSON.parse(defaultBlocklist)
-	}
-	loadYourBlocklist()
+function fetchRemoteWhitelist(tries, url) {
+	fetch(url)
+		.then((r) => retryFetch(r, tries, fetchRemoteWhitelist, url))
+		.then((response) => response.text())
+		.then((text) => retainRemoteWhitelist(text.split('\n'), url))
 }
 
 /*--- Sanitize URLs ---*/
@@ -416,12 +500,18 @@ function encode(input) {
 	return output.join('')
 }
 
-function sanitizeDomains(domains, skipRegex) {
+function sanitizeDomains(domains, skipRegex, forRemoteList) {
 	let sanitizedDomains = []
 	let reg = new RegExp(/[A-Z0-9][A-Z0-9_-]*(\.[A-Z0-9][A-Z0-9_-]*)+/i)
 	for (let i = 0; i < domains.length; i++) {
 		let domain = domains[i]
-		domain.replace(/^.*:\/\/|[\/,\:].*$/g, '')
+		if (forRemoteList) {
+			if (domain.startsWith('#')) {
+				continue
+			}
+			domain = domain.replace(/^(127\.0\.0\.1|0\.0\.0\.0|255\.255\.255\.255|localhost) /, '')
+		}
+		domain = domain.replace(/^.*:\/\/|[\/,\:].*$/g, '')
 		let newDomain = []
 		let splitDomain = domain.split('.')
 		for (let j = 0; j < splitDomain.length; j++) {
@@ -429,7 +519,7 @@ function sanitizeDomains(domains, skipRegex) {
 			newDomain.push(ascii)
 		}
 		domain = newDomain.join('.')
-		if (skipRegex === true) {
+		if (skipRegex) {
 			sanitizedDomains.push(domain.toLowerCase())
 		} else {
 			let checkedDomain = reg.exec(domain)
@@ -442,5 +532,5 @@ function sanitizeDomains(domains, skipRegex) {
 }
 
 loadSettings()
-updateLists()
-setInterval(updateLists, 600000)
+doWithWorker(updateLists)
+setInterval(function(){doWithWorker(updateLists)}, 3600000)

@@ -17,10 +17,6 @@ function handleClicks(click) {
 			activeSettings.showButtons ^= true
 			updateSettings()
 			break
-		case html.enableDefaultBlocklist:
-			activeSettings.enableDefaultBlocklist ^= true
-			updateSettings()
-			break
 		case html.manageYourBlocklist:
 			browser.tabs.create({url: browser.runtime.getURL('options/options.html')})
 			window.close()
@@ -39,7 +35,6 @@ function handleNullSettings(savedSettings) {
 	document.getElementById(html.enabled).checked = activeSettings.enabled
 	document.getElementById(html.showBlocked).checked = activeSettings.showBlocked
 	document.getElementById(html.showBlockButtons).checked = activeSettings.showButtons
-	document.getElementById(html.enableDefaultBlocklist).checked = activeSettings.enableDefaultBlocklist
 	document.getElementById(html.toHide).style.opacity = activeSettings.enabled === 0 ? 0.5 : 1
 }
 

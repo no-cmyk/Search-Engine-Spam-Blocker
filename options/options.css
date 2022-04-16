@@ -4,6 +4,10 @@ body {
 	padding: 15px;
 }
 
+div {
+	padding-left: 25px;
+}
+
 img {
 	width: 48px;
 }
@@ -44,6 +48,10 @@ ul {
 	cursor: default !important;
 }
 
+.ul-remote {
+	background-color: lightblue;
+}
+
 li {
 	padding: 2px;
 }
@@ -66,7 +74,7 @@ textarea {
 	margin: -5px 0 15px 0;
 }
 
-h3, h4, h5 {
+h2, h3, h4, h5 {
 	margin: 0;
 }
 

@@ -75,10 +75,10 @@ async function handleResult(e) {
 		return
 	}
 	e.classList.toggle(css.blocked, response.toRemove === true)
-	if (response.inRemoteBlocklist !== undefined) {
+	if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
 		addBanner(e, response.inRemoteBlocklist, true)
 		return
-	} else if (response.inRemoteWhitelist !== undefined) {
+	} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
 		addBanner(e, response.inRemoteWhitelist, false)
 		return
 	}

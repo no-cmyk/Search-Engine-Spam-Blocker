@@ -43,14 +43,14 @@ async function update() {
 				e.classList.remove(css.blockedShow)
 				e.classList.add(css.hidden)
 			}
-			if (blockDiv !== null) {
+			if (blockDiv !== null && byRemote === null) {
 				blockDiv.classList.add(css.hidden)
 				unblockDiv.classList.remove(css.hidden)
 			}
 		} else {
 			e.style.removeProperty('background')
 			e.classList.remove(css.hidden, css.blockedShow)
-			if (blockDiv !== null) {
+			if (blockDiv !== null && byRemote === null) {
 				blockDiv.classList.toggle(css.hidden, settings.showButtons === 0)
 				unblockDiv.classList.add(css.hidden)
 			}

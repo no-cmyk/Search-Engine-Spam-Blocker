@@ -13,9 +13,7 @@ browser.runtime.onMessage.addListener(message => {
 })
 
 async function update() {
-	if (settings === undefined) {
-		settings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
-	}
+	settings = settings ?? await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	for (const e of document.querySelectorAll('.' + textResult)) {
 		if (!shouldHandle(e)) {
 			continue
@@ -54,47 +52,36 @@ async function update() {
 /*---Scan search results---*/
 
 function scanResults() {
+	let elements = []
 	for (const e of document.querySelectorAll('.' + textResult)) {
 		if (shouldHandle(e)) {
 			if (e.getAttribute(css.sesbId) === null) {
 				e.setAttribute(css.sesbId, Math.random())
 			}
 			if (!done[e.getAttribute(css.sesbId)]) {
-				e.setAttribute(css.sesbId, Math.random())
 				done[e.getAttribute(css.sesbId)] = true
-				handleResult(e)
+				elements.push(e)
 			}
 		}
 	}
-	update()
+	handleResults(elements)
 }
 
 function shouldHandle(e) {
 	return e.getAttribute('data-fast-name') === null
 }
 
-async function handleResult(e) {
-	const url = getUrl(e)
-	if (url === '' || url === undefined) {
-		return
+async function handleResults(elements) {
+	let toSend = []
+	for (const e of elements) {
+		const url = getUrl(e)
+		if (url !== '' && url !== undefined) {
+			toSend.push({id: e.getAttribute(css.sesbId), url: url})
+		}
 	}
-	const response = await browser.runtime.sendMessage({action: actions.check, url: url})
-	if (response === undefined) {
-		return
-	}
-	e.classList.toggle(css.blocked, response.toRemove === true)
-	if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
-		addBanner(e, response.inRemoteBlocklist, true)
-		return
-	} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
-		addBanner(e, response.inRemoteWhitelist, false)
-		return
-	}
-	if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
-		addButton(e, response.domains, true)
-	}
-	if (e.querySelector('.' + css.unblockDiv) === null) {
-		addButton(e, response.domains, false)
+	const responses = await browser.runtime.sendMessage({action: actions.check, urls: toSend})
+	if (responses !== undefined) {
+		addButtons(responses)
 	}
 }
 
@@ -103,6 +90,27 @@ function getUrl(e) {
 }
 
 /*---Add block/unblock buttons---*/
+
+function addButtons(responses) {
+	for (const response of responses) {
+		let e = document.querySelector('[' + css.sesbId + '="' + response.id + '"]')
+		e.classList.toggle(css.blocked, response.toRemove === true)
+		if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
+			addBanner(e, response.inRemoteBlocklist, true)
+			return
+		} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
+			addBanner(e, response.inRemoteWhitelist, false)
+			return
+		}
+		if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
+			addButton(e, response.domains, true)
+		}
+		if (e.querySelector('.' + css.unblockDiv) === null) {
+			addButton(e, response.domains, false)
+		}
+	}
+	update()
+}
 
 function addBanner(e, listUrl, block) {
 	const div = document.createElement('div')
@@ -135,5 +143,4 @@ async function updateResults(url, block) {
 	}
 	done = {}
 	scanResults()
-	setTimeout(update, 200)
 }

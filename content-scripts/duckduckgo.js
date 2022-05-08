@@ -1,10 +1,9 @@
 'use strict'
 let settings
 let done = {}
-const textResult = 'result--url-above-snippet'
-const textResultDetails = 'result__sitelinks'
+const textResult = 'ARTICLE'
 const imgResult = 'tile--img'
-const allResults = '.' + textResult + '\,.' + imgResult
+const allResults = textResult + '\,.' + imgResult
 
 document.addEventListener('load', scanResults, true)
 
@@ -16,9 +15,7 @@ browser.runtime.onMessage.addListener(message => {
 })
 
 async function update() {
-	if (settings === undefined) {
-		settings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
-	}
+	settings = settings ?? await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	for (const e of document.querySelectorAll(allResults)) {
 		let blockDiv = e.querySelector('.' + css.blockDiv)
 		let unblockDiv = e.querySelector('.' + css.unblockDiv)
@@ -62,6 +59,7 @@ async function update() {
 /*---Scan search results---*/
 
 function scanResults() {
+	let elements = []
 	for (const e of document.querySelectorAll(allResults)) {
 		if (e.getAttribute(css.sesbId) === null) {
 			e.setAttribute(css.sesbId, Math.random())
@@ -69,44 +67,54 @@ function scanResults() {
 		if (!done[e.getAttribute(css.sesbId)]) {
 			e.setAttribute(css.sesbId, Math.random())
 			done[e.getAttribute(css.sesbId)] = true
-			handleResult(e)
+			elements.push(e)
 		}
 	}
-	setTimeout(update, 1500)
+	handleResults(elements)
 }
 
-async function handleResult(e) {
-	const url = getUrl(e)
-	if (url === '' || url === undefined) {
-		return
+async function handleResults(elements) {
+	let toSend = []
+	for (const e of elements) {
+		const url = getUrl(e)
+		if (url !== '' && url !== undefined) {
+			toSend.push({id: e.getAttribute(css.sesbId), url: url})
+		}
 	}
-	const response = await browser.runtime.sendMessage({action: actions.check, url: url})
-	if (response === undefined) {
-		return
-	}
-	e.classList.toggle(css.blocked, response.toRemove === true)
-	if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
-		addBanner(e, response.inRemoteBlocklist, true)
-		return
-	} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
-		addBanner(e, response.inRemoteWhitelist, false)
-		return
-	}
-	if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
-		addButton(e, response.domains, true)
-	}
-	if (e.querySelector('.' + css.unblockDiv) === null) {
-		addButton(e, response.domains, false)
+	const responses = await browser.runtime.sendMessage({action: actions.check, urls: toSend})
+	if (responses !== undefined) {
+		addButtons(responses)
 	}
 }
 
 function getUrl(e) {
-	return e.classList.contains(textResult) ?
-		e.getAttribute('data-domain').replace(regex.urlRegex, '')
+	return e.tagName === textResult ?
+		e.querySelectorAll('a')[1].href.replace(regex.urlRegex, '')
 		: e.querySelector('.tile--img__sub').href.replace(regex.urlRegex, '')
 }
 
 /*---Add block/unblock buttons---*/
+
+function addButtons(responses) {
+	for (const response of responses) {
+		let e = document.querySelector('[' + css.sesbId + '="' + response.id + '"]')
+		e.classList.toggle(css.blocked, response.toRemove === true)
+		if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
+			addBanner(e, response.inRemoteBlocklist, true)
+			return
+		} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
+			addBanner(e, response.inRemoteWhitelist, false)
+			return
+		}
+		if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
+			addButton(e, response.domains, true)
+		}
+		if (e.querySelector('.' + css.unblockDiv) === null) {
+			addButton(e, response.domains, false)
+		}
+	}
+	update()
+}
 
 function addBanner(e, listUrl, block) {
 	const div = document.createElement('div')
@@ -128,7 +136,7 @@ function addButton(e, domains, block) {
 		div.appendChild(button)
 	}
 	e.classList.add(css.fixHeight)
-	e.classList.contains(textResult) ? e.prepend(div) : fixDimensions(e, div)
+	e.tagName === textResult ? e.prepend(div) : fixDimensions(e, div)
 }
 
 function fixDimensions(e, div) {
@@ -150,5 +158,4 @@ async function updateResults(url, block, event) {
 	}
 	done = {}
 	scanResults()
-	setTimeout(update, 200)
 }

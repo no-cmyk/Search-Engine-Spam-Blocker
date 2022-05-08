@@ -20,7 +20,7 @@ function doWithWorker(onMessageFunction) {
 function handleMessages(message, sender) {
 	switch (message.action) {
 		case actions.check:
-			return Promise.resolve(checkUrl(message.url))
+			return Promise.resolve(checkUrls(message.urls))
 		case actions.update:
 			return block(message.url)
 		case actions.unblock:
@@ -84,42 +84,49 @@ function handleMessages(message, sender) {
 
 /*--- Domain check ---*/
 
-function checkUrl(url) {
-	const urlArray = url.split('.')
-	let domains = []
-	if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
-		for (let i = 0; i < urlArray.length; i++) {
-			const toCheck = urlArray.slice(i, urlArray.length).join('.')
-			if (!suffixList[toCheck]) {
-				domains.push(toCheck)
+function checkUrls(urls) {
+	let responses = []
+	for (const urlObject of urls) {
+		const url = urlObject.url
+		const urlArray = url.split('.')
+		let domains = []
+		if (!/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
+			for (let i = 0; i < urlArray.length; i++) {
+				const toCheck = urlArray.slice(i, urlArray.length).join('.')
+				if (!suffixList[toCheck]) {
+					domains.push(toCheck)
+				}
+			}
+		} else {
+			domains.push(urlArray.slice(0, urlArray.length - 1).join('.'))
+			domains.push(url)
+		}
+		let blocked
+		let whitelisted
+		let remoteBlocklist
+		let remoteWhitelist
+		for (const domain of domains) {
+			if (remoteBlockedDomains[domain]) {
+				remoteBlocklist = remoteBlockedDomains[domain]
+				blocked = domain
+			} else if (remoteWhitelistedDomains[domain]) {
+				remoteWhitelist = remoteWhitelistedDomains[domain]
+				whitelisted = domain
+			} else if (yourBlocklist[domain]) {
+				blocked = domain
+			} else if (whitelist[domain] || remoteWhitelistedDomains[domain]) {
+				whitelisted = domain
 			}
 		}
-	} else {
-		domains.push(urlArray.slice(0, urlArray.length - 1).join('.'))
-		domains.push(url)
+		responses.push({
+			id: urlObject.id,
+			toRemove: blocked !== undefined && (whitelisted === undefined || !whitelisted.endsWith('.' + blocked)),
+			whitelisted: whitelisted !== undefined,
+			domains: domains,
+			inRemoteBlocklist: remoteBlocklist,
+			inRemoteWhitelist: remoteWhitelist})
 	}
-	let blocked
-	let whitelisted
-	let remoteBlocklist
-	let remoteWhitelist
-	for (const domain of domains) {
-		if (remoteBlockedDomains[domain]) {
-			remoteBlocklist = remoteBlockedDomains[domain]
-			blocked = domain
-		} else if (remoteWhitelistedDomains[domain]) {
-			remoteWhitelist = remoteWhitelistedDomains[domain]
-			whitelisted = domain
-		} else if (yourBlocklist[domain]) {
-			blocked = domain
-		} else if (whitelist[domain] || remoteWhitelistedDomains[domain]) {
-			whitelisted = domain
-		}
-	}
-	return {toRemove: blocked !== undefined && (whitelisted === undefined || !whitelisted.endsWith('.' + blocked)),
-		whitelisted: whitelisted !== undefined,
-		domains: domains,
-		inRemoteBlocklist: remoteBlocklist,
-		inRemoteWhitelist: remoteWhitelist}
+	return responses
 }
 
 /*--- Your blocklist ---*/

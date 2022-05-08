@@ -18,9 +18,7 @@ browser.runtime.onMessage.addListener(message => {
 })
 
 async function update() {
-	if (settings === undefined) {
-		settings = await browser.runtime.sendMessage({action: actions.getActiveSettings})
-	}
+	settings = settings ?? await browser.runtime.sendMessage({action: actions.getActiveSettings})
 	for (const e of document.querySelectorAll(allResults)) {
 		let blockDiv = e.querySelector('.' + css.blockDiv)
 		let unblockDiv = e.querySelector('.' + css.unblockDiv)
@@ -56,24 +54,48 @@ async function update() {
 /*---Scan search results---*/
 
 function scanTextResults() {
+	let elements = []
 	for (const e of document.querySelectorAll(allTextResults)) {
 		if (shouldHandle(e)) {
-			handleResult(e)
+			giveId(e)
+			elements.push(e)
 		}
 	}
+	handleResults(elements)
 }
 
 function scanImageResults() {
-	for (const e of document.querySelectorAll('.' + imgResult)) {
-		if (e.getAttribute(css.sesbId) === null) {
-			e.setAttribute(css.sesbId, Math.random())
-		}
-		if (!done[e.getAttribute(css.sesbId)]) {
-			done[e.getAttribute(css.sesbId)] = true
-			handleResult(e)
+	let elements = []
+	for (const e of document.querySelectorAll('div.' + imgResult)) {
+		if (shouldHandle(e)) {
+			giveId(e)
+			if (!done[e.getAttribute(css.sesbId)]) {
+				done[e.getAttribute(css.sesbId)] = true
+				elements.push(e)
+			}
 		}
 	}
-	update()
+	handleResults(elements)
+}
+
+function giveId(e) {
+	if (e.getAttribute(css.sesbId) === null) {
+		e.setAttribute(css.sesbId, Math.random())
+	}
+}
+
+async function handleResults(elements) {
+	let toSend = []
+	for (const e of elements) {
+		const url = getUrl(e)
+		if (url !== '' && url !== undefined) {
+			toSend.push({id: e.getAttribute(css.sesbId), url: url})
+		}
+	}
+	const responses = await browser.runtime.sendMessage({action: actions.check, urls: toSend})
+	if (responses !== undefined) {
+		addButtons(responses)
+	}
 }
 
 function shouldHandle(e) {
@@ -82,38 +104,13 @@ function shouldHandle(e) {
 			&& !e.classList.contains('g-blk')
 			&& !e.classList.contains('gadasb')
 			&& !e.parentElement.id.startsWith('WEB_ANSWERS_')
-			&& e.querySelectorAll('.xpc\,.kp-wholepage').length === 0
+			&& e.querySelector('.xpc\,.kp-wholepage\,.gadasb') === null
 			&& !e.parentElement.parentElement.parentElement.parentElement.parentElement.classList.contains(textResult)
 	}
 	return e.firstElementChild.firstElementChild !== null
-		&& e.querySelectorAll(allTextResults).length === 0
+		&& e.querySelector(allTextResults) === null
 		&& e.firstElementChild.firstElementChild.nodeName === 'A'
 		&& e.parentElement.parentElement.nodeName !== 'FOOTER'
-}
-
-async function handleResult(e) {
-	const url = getUrl(e)
-	if (url === '' || url === undefined) {
-		return
-	}
-	const response = await browser.runtime.sendMessage({action: actions.check, url: url})
-	if (response === undefined) {
-		return
-	}
-	e.classList.toggle(css.blocked, response.toRemove === true)
-	if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
-		addBanner(e, response.inRemoteBlocklist, true)
-		return
-	} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
-		addBanner(e, response.inRemoteWhitelist, false)
-		return
-	}
-	if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
-		addButton(e, response.domains, true)
-	}
-	if (e.querySelector('.' + css.unblockDiv) === null) {
-		addButton(e, response.domains, false)
-	}
 }
 
 function getUrl(e) {
@@ -121,6 +118,27 @@ function getUrl(e) {
 }
 
 /*---Add block/unblock buttons---*/
+
+function addButtons(responses) {
+	for (const response of responses) {
+		let e = document.querySelector('[' + css.sesbId + '="' + response.id + '"]')
+		e.classList.toggle(css.blocked, response.toRemove === true)
+		if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
+			addBanner(e, response.inRemoteBlocklist, true)
+			return
+		} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
+			addBanner(e, response.inRemoteWhitelist, false)
+			return
+		}
+		if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
+			addButton(e, response.domains, true)
+		}
+		if (e.querySelector('.' + css.unblockDiv) === null) {
+			addButton(e, response.domains, false)
+		}
+	}
+	update()
+}
 
 function addBanner(e, listUrl, block) {
 	const div = document.createElement('div')
@@ -155,5 +173,4 @@ async function updateResults(url, block) {
 	done = {}
 	scanTextResults()
 	scanImageResults()
-	setTimeout(update, 200)
 }

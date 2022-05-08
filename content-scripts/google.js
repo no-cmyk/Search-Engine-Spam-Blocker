@@ -125,10 +125,8 @@ function addButtons(responses) {
 		e.classList.toggle(css.blocked, response.toRemove === true)
 		if (response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.byRemote) === null) {
 			addBanner(e, response.inRemoteBlocklist, true)
-			return
 		} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.byRemote) === null) {
 			addBanner(e, response.inRemoteWhitelist, false)
-			return
 		}
 		if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
 			addButton(e, response.domains, true)

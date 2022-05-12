@@ -40,7 +40,7 @@ function handleMessages(message, sender) {
 		case actions.loadRemoteWhitelists:
 			return Promise.resolve(Object.keys(remoteWhitelists).sort())
 		case actions.updateSpamLists:
-			doWithWorker(function(){updateOnlineLists(true)})
+			doWithWorker(updateLists)
 			break
 		case actions.remove:
 			removeFromYourBlocklist(message.url)
@@ -208,7 +208,7 @@ function addRemoteBlocklists(urls) {
 function removeFromRemoteBlocklists(url) {
 	delete remoteBlocklists[url]
 	browser.storage.local.set({sesbRemoteBlocklists: JSON.stringify(remoteBlocklists)})
-	updateLists()
+	doWithWorker(updateLists)
 }
 
 /*--- Remote whitelists ---*/
@@ -224,7 +224,7 @@ function addRemoteWhitelists(urls) {
 function removeFromRemoteWhitelists(url) {
 	delete remoteWhitelists[url]
 	browser.storage.local.set({sesbRemoteWhitelists: JSON.stringify(remoteWhitelists)})
-	updateLists()
+	doWithWorker(updateLists)
 }
 
 /*--- Unblock ---*/

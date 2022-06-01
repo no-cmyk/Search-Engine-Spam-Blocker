@@ -9,7 +9,6 @@ const defaultBlocklist = {
 }
 const storedResources = {
 	settings: 'sesbSettings',
-	suffixList: 'sesbSuffixList',
 	whitelist: 'sesbWhitelist',
 	yourBlocklist: 'sesbYourBlocklist',
 	remoteBlocklists: 'sesbRemoteBlocklists',

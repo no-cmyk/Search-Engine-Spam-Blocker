@@ -7,13 +7,6 @@ const defaultSettings = {
 const defaultBlocklist = {
 	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
 }
-const storedResources = {
-	settings: 'sesbSettings',
-	whitelist: 'sesbWhitelist',
-	yourBlocklist: 'sesbYourBlocklist',
-	remoteBlocklists: 'sesbRemoteBlocklists',
-	remoteWhitelists: 'sesbRemoteWhitelists'
-}
 const css = {
 	blockDiv: 'sesb-block-div',
 	unblockDiv: 'sesb-unblock-div',

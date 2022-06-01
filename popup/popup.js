@@ -31,7 +31,7 @@ function handleClicks(click) {
 }
 
 function updateSettings() {
-	browser.storage.local.set({sesbSettings: activeSettings}).then(browser.runtime.sendMessage({action: actions.reloadSettings}))
+	browser.storage.local.set({'settings': activeSettings}).then(browser.runtime.sendMessage({action: actions.reloadSettings}))
 	browser.tabs.query({}, (tabs) => tabs.forEach(tab => browser.tabs.sendMessage(tab.id, activeSettings)))
 }
 
@@ -43,4 +43,4 @@ function handleNullSettings(savedSettings) {
 	toHide.style.opacity = activeSettings.enabled === 0 ? 0.5 : 1
 }
 
-browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+browser.storage.local.get('settings').then((r) => r.settings).then((r) => handleNullSettings(r))

@@ -23,7 +23,8 @@ const css = {
 	hidden: 'sesb-hidden',
 	sesbId: 'sesb-id',
 	blocked: 'sesb-blocked',
-	byRemote: 'sesb-by-remote'
+	blockedByRemote: 'sesb-blocked-by-remote',
+	whitelistedByRemote: 'sesb-whitelisted-by-remote'
 }
 const html = {
 	addDomainsButton: 'add-domains-button',

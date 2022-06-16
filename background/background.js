@@ -24,7 +24,7 @@ function handleMessages(message, sender) {
 		case actions.update:
 			return block(message.url)
 		case actions.unblock:
-			return unblock(message.url, false)
+			return unblock(message.url, message.mustBeWhitelisted)
 		case actions.updateMultiple:
 			doWithWorker(function(){blockMultiple(message.urls)})
 			break
@@ -109,16 +109,16 @@ function checkUrls(urls) {
 		let remoteBlocklist
 		let remoteWhitelist
 		for (const domain of domains) {
-			if (remoteBlockedDomains[domain]) {
-				remoteBlocklist = remoteBlockedDomains[domain]
-				blocked = domain
+			if (whitelist[domain] || remoteWhitelistedDomains[domain]) {
+				whitelisted = domain
 			} else if (remoteWhitelistedDomains[domain]) {
 				remoteWhitelist = remoteWhitelistedDomains[domain]
 				whitelisted = domain
+			} else if (remoteBlockedDomains[domain]) {
+				remoteBlocklist = remoteBlockedDomains[domain]
+				blocked = domain
 			} else if (yourBlocklist[domain]) {
 				blocked = domain
-			} else if (whitelist[domain] || remoteWhitelistedDomains[domain]) {
-				whitelisted = domain
 			}
 		}
 		responses.push({
@@ -132,7 +132,7 @@ function checkUrls(urls) {
 	return responses
 }
 
-/*--- Your blocklist ---*/
+/*--- Local blocklist ---*/
 
 function removeFromYourBlocklist(url) {
 	delete yourBlocklist[url]
@@ -183,7 +183,43 @@ function blockMultiple(domains) {
 	optionsPageListsUpdated = true
 }
 
-/*--- Whitelist ---*/
+/*--- Local whitelist ---*/
+
+function unblock(toUnblock, mustBeWhitelisted) {
+	const blocklistProps = Object.keys(yourBlocklist)
+	const whitelistProps = Object.keys(whitelist)
+	let whitelistedSubdomain
+	let blockedDomainOrSubdomain
+	let blockedUpperDomain = false
+	for (const whitelisted of whitelistProps) {
+		if (whitelisted !== toUnblock && whitelisted.endsWith('.' + toUnblock)) {
+			whitelistedSubdomain = whitelisted
+		}  else if (toUnblock === whitelisted || toUnblock.endsWith('.' + whitelisted)) {
+			return Promise.resolve(true)
+		}
+	}
+	for (const blocked of blocklistProps) {
+		if (blocked === toUnblock || blocked.endsWith('.' + toUnblock)) {
+			blockedDomainOrSubdomain = blocked
+		} else if (toUnblock.endsWith('.' + blocked)) {
+			blockedUpperDomain = true
+		}
+	}
+	if (whitelistedSubdomain !== undefined && mustBeWhitelisted) {
+		delete whitelist[whitelistedSubdomain]
+	}
+	if (blockedDomainOrSubdomain !== undefined) {
+		delete yourBlocklist[blockedDomainOrSubdomain]
+	} else if (blockedUpperDomain) {
+		whitelist[toUnblock] = true
+	}
+	if (mustBeWhitelisted) {
+		whitelist[toUnblock] = true
+	}
+	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
+	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
+	return Promise.resolve(true)
+}
 
 function removeFromWhitelist(url) {
 	delete whitelist[url]
@@ -228,44 +264,6 @@ function removeFromRemoteWhitelists(url) {
 	delete remoteWhitelists[url]
 	browser.storage.local.set({sesbRemoteWhitelists: JSON.stringify(remoteWhitelists)})
 	doWithWorker(updateLists)
-}
-
-/*--- Unblock ---*/
-
-function unblock(toUnblock, mustBeWhitelisted) {
-	const blocklistProps = Object.keys(yourBlocklist)
-	const whitelistProps = Object.keys(whitelist)
-	let whitelistedSubdomain
-	let blockedDomainOrSubdomain
-	let blockedUpperDomain = false
-	for (const whitelisted of whitelistProps) {
-		if (whitelisted !== toUnblock && whitelisted.endsWith('.' + toUnblock)) {
-			whitelistedSubdomain = whitelisted
-		}  else if (toUnblock === whitelisted || toUnblock.endsWith('.' + whitelisted)) {
-			return Promise.resolve(true)
-		}
-	}
-	for (const blocked of blocklistProps) {
-		if (blocked === toUnblock || blocked.endsWith('.' + toUnblock)) {
-			blockedDomainOrSubdomain = blocked
-		} else if (toUnblock.endsWith('.' + blocked)) {
-			blockedUpperDomain = true
-		}
-	}
-	if (whitelistedSubdomain !== undefined && mustBeWhitelisted) {
-		delete whitelist[whitelistedSubdomain]
-	}
-	if (blockedDomainOrSubdomain !== undefined) {
-		delete yourBlocklist[blockedDomainOrSubdomain]
-	} else if (blockedUpperDomain) {
-		whitelist[toUnblock] = true
-	}
-	if (mustBeWhitelisted) {
-		whitelist[toUnblock] = true
-	}
-	browser.storage.local.set({sesbYourBlocklist: JSON.stringify(yourBlocklist)})
-	browser.storage.local.set({sesbWhitelist: JSON.stringify(whitelist)})
-	return Promise.resolve(true)
 }
 
 /*--- Automatic update ---*/

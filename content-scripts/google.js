@@ -5,7 +5,7 @@ const textResult = 'g'
 const textResultMobile = 'xpd'
 const imgResult = 'isv-r'
 const allTextResults = '.' + textResult + '\,.' + textResultMobile
-const allResults = '.' + textResult + '\,.' + textResultMobile + '\,.' + imgResult
+const allResults = allTextResults + '\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
 document.addEventListener('DOMContentLoaded', scanTextResults, true)
@@ -166,6 +166,7 @@ function addButton(e, domains, block, byRemote) {
 
 async function updateResults(url, block, byRemote) {
 	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url, mustBeWhitelisted: !block && byRemote})
+	window.onscroll = function(){window.scrollTo(window.scrollX, window.scrollY)}
 	for (const e of document.querySelectorAll(allResults)) {
 		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote)
 	}
@@ -175,4 +176,5 @@ async function updateResults(url, block, byRemote) {
 	done = {}
 	scanTextResults()
 	scanImageResults()
+	window.onscroll = function(){}
 }

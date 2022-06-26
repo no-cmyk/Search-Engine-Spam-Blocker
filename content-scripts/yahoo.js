@@ -128,6 +128,7 @@ function addButton(e, domains, block, byRemote) {
 
 async function updateResults(url, block, byRemote) {
 	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url, mustBeWhitelisted: !block && byRemote})
+	window.onscroll = function(){window.scrollTo(window.scrollX, window.scrollY)}
 	for (const e of document.querySelectorAll(allResults)) {
 		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote)
 	}
@@ -136,4 +137,5 @@ async function updateResults(url, block, byRemote) {
 	}
 	done = {}
 	scanResults()
+	window.onscroll = function(){}
 }

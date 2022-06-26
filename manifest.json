@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "2.1.5",
+	"version": "2.2.0",
 	"description": "Block sites from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/search-engine-spam-blocker",
 	"icons": {
@@ -54,6 +54,12 @@
 			"matches": ["*://www.qwant.com/*"],
 			"run_at": "document_start",
 			"js": ["background/constants.js", "content-scripts/qwant.js"],
+			"css": ["background/sesb.css"]
+		},
+		{
+			"matches": ["*://search.brave.com/*"],
+			"run_at": "document_start",
+			"js": ["background/constants.js", "content-scripts/brave.js"],
 			"css": ["background/sesb.css"]
 		}
 	],

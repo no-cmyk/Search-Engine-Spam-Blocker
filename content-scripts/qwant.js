@@ -111,7 +111,6 @@ function addBanner(e, listUrl, block) {
 	const div = document.createElement('div')
 	div.classList.add(block ? css.blockedByRemote : css.whitelistedByRemote)
 	div.innerText = (block ? texts.blockedByRemote : texts.whitelistedByRemote) + listUrl
-	e.classList.add(css.fixHeight)
 	e.append(div)
 }
 
@@ -126,21 +125,20 @@ function addButton(e, domains, block, byRemote) {
 		button.addEventListener('click', function(event){updateResults(domains[i], block, event, byRemote)})
 		div.appendChild(button)
 	}
-	e.querySelector('[class^="WebResult-module__subContainer"],[class^="Card-module__Card___"]').prepend(div)
+	e.prepend(div)
 }
 
 async function updateResults(url, block, event, byRemote) {
 	event.stopPropagation()
 	event.preventDefault()
 	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url, mustBeWhitelisted: !block && byRemote})
-	window.onscroll = function(){window.scrollTo(window.scrollX, window.scrollY)}
 	for (const e of document.querySelectorAll(allResults)) {
 		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote)
+		e.style.height = window.getComputedStyle(e).height
 	}
 	for (const e of document.querySelectorAll(allButtons)) {
 		e.remove()
 	}
 	done = {}
 	scanResults()
-	window.onscroll = function(){}
 }

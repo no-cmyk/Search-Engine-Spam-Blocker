@@ -2,10 +2,8 @@
 let settings
 let done = {}
 const textResult = 'snippet'
-const textResultMobile = 'xpd'
 const imgResult = 'box'
-const allTextResults = '.' + textResult + '\,.' + textResultMobile
-const allResults = allTextResults + '\,.' + imgResult
+const allResults = '.' + textResult + '\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
 document.addEventListener('DOMContentLoaded', scanTextResults, true)
@@ -57,7 +55,7 @@ async function update() {
 
 function scanTextResults() {
 	let elements = []
-	for (const e of document.querySelectorAll(allTextResults)) {
+	for (const e of document.querySelectorAll('.' + textResult)) {
 		giveId(e)
 		elements.push(e)
 	}
@@ -68,8 +66,8 @@ function scanImageResults() {
 	let elements = []
 	for (const e of document.querySelectorAll('div.' + imgResult)) {
 		giveId(e)
-		e.style.height = '100%'
-		e.style.marginBottom = '10px'
+		e.style.display = 'table'
+		e.style.tableLayout = 'fixed'
 		if (!done[e.getAttribute(css.sesbId)]) {
 			done[e.getAttribute(css.sesbId)] = true
 			elements.push(e)
@@ -139,17 +137,20 @@ function addButton(e, domains, block, byRemote) {
 	for (let i = domains.length - 1; i >= 0; i--) {
 		const button = document.createElement('button')
 		button.innerText = domains[i]
-		button.addEventListener('click', function(){updateResults(domains[i], block, byRemote)})
+		button.addEventListener('click', function(event){updateResults(domains[i], block, byRemote, event)})
 		div.appendChild(button)
 	}
 	e.append(div)
 }
 
-async function updateResults(url, block, byRemote) {
+async function updateResults(url, block, byRemote, event) {
+	event.stopPropagation()
+	event.preventDefault()
 	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url, mustBeWhitelisted: !block && byRemote})
 	window.onscroll = function(){window.scrollTo(window.scrollX, window.scrollY)}
 	for (const e of document.querySelectorAll(allResults)) {
 		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote)
+		e.style.height = window.getComputedStyle(e).height
 	}
 	for (const e of document.querySelectorAll(allButtons)) {
 		e.remove()

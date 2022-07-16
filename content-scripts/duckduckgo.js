@@ -152,14 +152,14 @@ function fixDimensions(e, div) {
 async function updateResults(url, block, event, byRemote) {
 	event.stopPropagation()
 	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url, mustBeWhitelisted: !block && byRemote})
-	window.onscroll = function(){window.scrollTo(window.scrollX, window.scrollY)}
 	for (const e of document.querySelectorAll(allResults)) {
 		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote)
+		e.style.height = window.getComputedStyle(e).height
+		e.classList.remove(css.fixHeight)
 	}
 	for (const e of document.querySelectorAll(allButtons)) {
 		e.remove()
 	}
 	done = {}
 	scanResults()
-	window.onscroll = function(){}
 }

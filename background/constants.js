@@ -7,13 +7,6 @@ const defaultSettings = {
 const defaultBlocklist = {
 	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
 }
-const storedResources = {
-	settings: 'sesbSettings',
-	whitelist: 'sesbWhitelist',
-	yourBlocklist: 'sesbYourBlocklist',
-	remoteBlocklists: 'sesbRemoteBlocklists',
-	remoteWhitelists: 'sesbRemoteWhitelists'
-}
 const css = {
 	blockDiv: 'sesb-block-div',
 	unblockDiv: 'sesb-unblock-div',
@@ -25,35 +18,6 @@ const css = {
 	blocked: 'sesb-blocked',
 	blockedByRemote: 'sesb-blocked-by-remote',
 	whitelistedByRemote: 'sesb-whitelisted-by-remote'
-}
-const html = {
-	addDomainsButton: 'add-domains-button',
-	addDomainsTextarea: 'add-domains-textarea',
-	addBlocklistUrlsTextarea: 'add-blocklist-urls-textarea',
-	addBlocklistUrlsButton: 'add-blocklist-urls-button',
-	yourRemoteBlocklists: 'your-remote-blocklists',
-	addWhitelistUrlsTextarea: 'add-whitelist-urls-textarea',
-	addWhitelistUrlsButton: 'add-whitelist-urls-button',
-	yourRemoteWhitelists: 'your-remote-whitelists',
-	clearBlocklist: 'clear-blocklist',
-	domain: 'domain',
-	domainWhitelist: 'domain-whitelist',
-	enabled: 'enabled',
-	export: 'export',
-	import: 'import',
-	manageYourBlocklist: 'manage-your-blocklist',
-	resultOk: 'result-ok',
-	showBlockButtons: 'show-block-buttons',
-	showBlocked: 'show-blocked',
-	toHide: 'to-hide',
-	updateSpamLists: 'update-spam-lists',
-	whitelist: 'whitelist',
-	whitelistDomainsButton: 'whitelist-domains-button',
-	whitelistDomainsTextarea: 'whitelist-domains-textarea',
-	yourBlocklist: 'your-blocklist',
-	remoteBlocklist: 'remote-blocklist',
-	yourWhitelist: 'your-whitelist',
-	remoteWhitelist: 'remote-whitelist'
 }
 const regex = {
 	urlRegex: /^http.*:\/\/|\/.*$|:\d+/g,

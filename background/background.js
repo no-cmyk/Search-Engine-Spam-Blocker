@@ -274,7 +274,7 @@ function handleNullSettings(savedSettings) {
 }
 
 function loadSettings() {
-	browser.storage.local.get(storedResources.settings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+	browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
 }
 
 async function updateLists() {
@@ -286,10 +286,10 @@ async function updateLists() {
 	remoteWhitelists = {}
 	remoteBlockedDomains = {}
 	remoteWhitelistedDomains = {}
-	const yourBlocklistJson = await browser.storage.local.get(storedResources.yourBlocklist).then((r) => r.sesbYourBlocklist)
-	const whitelistJson = await browser.storage.local.get(storedResources.whitelist).then((r) => r.sesbWhitelist)
-	let remoteBlocklistsJson = await browser.storage.local.get(storedResources.remoteBlocklists).then((r) => r.sesbRemoteBlocklists) ?? JSON.stringify(defaultBlocklist)
-	const remoteWhitelistsJson = await browser.storage.local.get(storedResources.remoteWhitelists).then((r) => r.sesbRemoteWhitelists)
+	const yourBlocklistJson = await browser.storage.local.get('sesbYourBlocklist').then((r) => r.sesbYourBlocklist)
+	const whitelistJson = await browser.storage.local.get('sesbWhitelist').then((r) => r.sesbWhitelist)
+	let remoteBlocklistsJson = await browser.storage.local.get('sesbRemoteBlocklists').then((r) => r.sesbRemoteBlocklists) ?? JSON.stringify(defaultBlocklist)
+	const remoteWhitelistsJson = await browser.storage.local.get('sesbRemoteWhitelists').then((r) => r.sesbRemoteWhitelists)
 	if (yourBlocklistJson) {
 		yourBlocklist = JSON.parse(yourBlocklistJson)
 	}

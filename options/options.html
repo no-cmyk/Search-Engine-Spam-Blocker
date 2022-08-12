@@ -12,32 +12,32 @@
 			<br>
 			<h3>Local blocklist</h3>
 			<div>
-				<ul id="your-blocklist"></ul>
-				<a href=""><button id="export">Export</button></a>
-				<button class="dangerous" id="clear-blocklist">Clear</button>
+				<ul id="yourBlocklist"></ul>
+				<a href=""><button id="exportButton">Export</button></a>
+				<button class="dangerous" id="clearBlocklist">Clear</button>
 				<br><br>
 				<h4>Write domains to block</h4>
 				<h5>One domain per line, no wildcards</h5>
 				<br>
-				<textarea id="add-domains-textarea"></textarea>
+				<textarea id="addDomainsTextarea"></textarea>
 				<br>
-				<button id="add-domains-button">Block domains</button>
+				<button id="addDomainsButton">Block domains</button>
 				<br><br>
 				<h4>Import blocklist from file</h4>
 				<h5>One domain per line, no wildcards</h5>
 				<br>
-				<input id="import" type="file" accept=".txt">
+				<input id="importButton" type="file" accept=".txt">
 			</div>
 			<br><br><br>
 			<h3>Remote blocklists <i>(beta)</i></h3>
 			<div>
-				<ul id="your-remote-blocklists" class="ul-remote"></ul>
+				<ul id="yourRemoteBlocklists" class="ul-remote"></ul>
 				<h4>Import blocklists from URLs</h4>
 				<h5>One URL per line</h5>
 				<br>
-				<textarea id="add-blocklist-urls-textarea"></textarea>
+				<textarea id="addBlocklistUrlsTextarea"></textarea>
 				<br>
-				<button id="add-blocklist-urls-button">Add blocklists</button>
+				<button id="addBlocklistUrlsButton">Add blocklists</button>
 			</div>
 			<br><br><br>
 		</div>
@@ -50,25 +50,25 @@
 				<h4>Write domains to whitelist</h4>
 				<h5>One domain per line, no wildcards</h5>
 				<br>
-				<textarea id="whitelist-domains-textarea"></textarea>
+				<textarea id="whitelistDomainsTextarea"></textarea>
 				<br>
-				<button id="whitelist-domains-button">Whitelist domains</button>
+				<button id="whitelistDomainsButton">Whitelist domains</button>
 			</div>
 			<br><br><br>
 			<h3>Remote whitelists <i>(beta)</i></h3>
 			<div>
-				<ul id="your-remote-whitelists" class="ul-remote"></ul>
+				<ul id="yourRemoteWhitelists" class="ul-remote"></ul>
 				<h4>Import whitelists from URLs</h4>
 				<h5>One URL per line</h5>
 				<br>
-				<textarea id="add-whitelist-urls-textarea"></textarea>
+				<textarea id="addWhitelistUrlsTextarea"></textarea>
 				<br>
-				<button id="add-whitelist-urls-button">Add whitelists</button>
+				<button id="addWhitelistUrlsButton">Add whitelists</button>
 			</div>
 			<br><br><br>
 		</div>
-		<button id="update-spam-lists">Force lists update</button>
-		<span class="result-ok" id="result-ok">OK ;)</span>
+		<button id="updateSpamLists">Force lists update</button>
+		<span id="resultOk">OK ;)</span>
 		<br><br><br>
 		<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocker">Source code</a>&nbsp;
 		<a href="https://github.com/no-cmyk/Search-Engine-Spam-Blocklist">Default blocklist</a>

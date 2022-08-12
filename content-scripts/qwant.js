@@ -111,7 +111,7 @@ function addBanner(e, listUrl, block) {
 	const div = document.createElement('div')
 	div.classList.add(block ? css.blockedByRemote : css.whitelistedByRemote)
 	div.innerText = (block ? texts.blockedByRemote : texts.whitelistedByRemote) + listUrl
-	e.append(div)
+	e.prepend(div)
 }
 
 function addButton(e, domains, block, byRemote) {

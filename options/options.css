@@ -78,7 +78,7 @@ h2, h3, h4, h5 {
 	margin: 0;
 }
 
-.result-ok {
+#resultOk {
 	color: green;
 	font-weight: bold;
 	display: none;

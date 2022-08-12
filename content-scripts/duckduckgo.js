@@ -122,7 +122,7 @@ function addBanner(e, listUrl, block) {
 	div.classList.add(block ? css.blockedByRemote : css.whitelistedByRemote)
 	div.innerText = (block ? texts.blockedByRemote : texts.whitelistedByRemote) + listUrl
 	e.classList.add(css.fixHeight)
-	e.append(div)
+	e.tagName === textResult ? e.prepend(div) : fixDimensions(e, div)
 }
 
 function addButton(e, domains, block, byRemote) {

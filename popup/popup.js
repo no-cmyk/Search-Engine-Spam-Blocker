@@ -1,28 +1,24 @@
 'use strict'
-const toHide = document.getElementById(html.toHide)
-const enabled = document.getElementById(html.enabled)
-const showBlocked = document.getElementById(html.showBlocked)
-const showBlockButtons = document.getElementById(html.showBlockButtons)
 let activeSettings
 
 document.addEventListener('click', handleClicks)
 
 function handleClicks(click) {
 	switch (click.srcElement.id) {
-		case html.enabled:
+		case 'enabled':
 			activeSettings.enabled ^= true
 			toHide.style.opacity = activeSettings.enabled === 0 ? 0.5 : 1
 			updateSettings()
 			break
-		case html.showBlocked:
+		case 'showBlocked':
 			activeSettings.showBlocked ^= true
 			updateSettings()
 			break
-		case html.showBlockButtons:
+		case 'showBlockButtons':
 			activeSettings.showButtons ^= true
 			updateSettings()
 			break
-		case html.manageYourBlocklist:
+		case 'manageYourBlocklist':
 			browser.tabs.create({url: browser.runtime.getURL('options/options.html')})
 			window.close()
 		default:
@@ -43,4 +39,4 @@ function handleNullSettings(savedSettings) {
 	toHide.style.opacity = activeSettings.enabled === 0 ? 0.5 : 1
 }
 
-browser.storage.local.get(storedResources.activeSettings).then((r) => r.sesbSettings).then((r) => handleNullSettings(r))
+browser.storage.local.get('sesbSettings').then((r) => r.sesbSettings).then((r) => handleNullSettings(r))

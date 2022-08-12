@@ -5,7 +5,7 @@ const textResult = 'g'
 const textResultMobile = 'xpd'
 const imgResult = 'isv-r'
 const allTextResults = '.' + textResult + '\,.' + textResultMobile
-const allResults = '.' + textResult + '\,.' + textResultMobile + '\,.' + imgResult
+const allResults = allTextResults + '\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
 document.addEventListener('DOMContentLoaded', scanTextResults, true)

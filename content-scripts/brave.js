@@ -1,7 +1,7 @@
 'use strict'
 let settings
 let done = {}
-const textResult = 'snippet'
+const textResult = 'snippet.fdb'
 const imgResult = 'box'
 const allResults = '.' + textResult + '\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote

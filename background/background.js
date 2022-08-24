@@ -1,14 +1,15 @@
 'use strict'
 let suffixList = {}
-let optionsPageListsUpdated = false
 let yourBlocklist = {}
 let whitelist = {}
 let remoteBlockedDomains = {}
 let remoteBlocklists = {}
 let remoteWhitelistedDomains = {}
 let remoteWhitelists = {}
-const workerUrl = browser.runtime.getURL('background/worker.js')
 let activeSettings
+let optionsPageListsUpdated = false
+const workerUrl = browser.runtime.getURL('background/worker.js')
+
 browser.runtime.onMessage.addListener(handleMessages)
 
 function doWithWorker(onMessageFunction) {
@@ -176,7 +177,7 @@ function block(toBlock) {
 }
 
 function blockMultiple(domains) {
-	const sanitizedDomains = sanitizeDomains(domains, false, false)
+	const sanitizedDomains = sanitizeDomains(domains, false)
 	for (const domain of sanitizedDomains) {
 		block(domain)
 	}
@@ -227,7 +228,7 @@ function removeFromWhitelist(url) {
 }
 
 function whitelistMultiple(domains) {
-	const sanitizedDomains = sanitizeDomains(domains, false, false)
+	const sanitizedDomains = sanitizeDomains(domains, false)
 	for (const domain of sanitizedDomains) {
 		unblock(domain, true)
 	}
@@ -307,33 +308,14 @@ async function updateLists() {
 }
 
 function retainSuffixList(text) {
-	let validText = []
-	let sanitizedText = []
 	for (let i = 0; i < text.length; i++) {
-		if (text[i].includes('END ICANN DOMAINS')) {
-			break
-		} else if (text[i].startsWith('*') || text[i].startsWith('!')) {
-			validText.push(text[i].substring(2))
-		} else if (text[i] !== '' && !text[i].startsWith('/')) {
-			validText.push(text[i])
-		}
-	}
-	sanitizedText = sanitizeDomains(validText, true, false)
-	for (let i = 0; i < sanitizedText.length; i++) {
-		suffixList[sanitizedText[i]] = true
+		suffixList[text[i]] = true
 	}
 	console.log('Suffix list OK')
 }
 
-function retainUnlistedSuffixesList(text) {
-	for (let i = 0; i < text.length; i++) {
-		suffixList[text[i]] = true
-	}
-	console.log('Unlisted suffixes list OK')
-}
-
 function retainRemoteBlocklist(text, url) {
-	text = sanitizeDomains(text, false, true)
+	text = sanitizeDomains(text, true)
 	for (let i = 0; i < text.length; i++) {
 		remoteBlockedDomains[text[i]] = url
 	}
@@ -343,7 +325,7 @@ function retainRemoteBlocklist(text, url) {
 }
 
 function retainRemoteWhitelist(text, url) {
-	text = sanitizeDomains(text, false, true)
+	text = sanitizeDomains(text, true)
 	for (let i = 0; i < text.length; i++) {
 		remoteWhitelistedDomains[text[i]] = url
 	}
@@ -377,18 +359,10 @@ function retryFetch(response, tries, functionToRetry, url) {
 }
 
 function fetchSuffixList(tries) {
-	fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat')
+	fetch(urls.suffixList)
 		.then((r) => retryFetch(r, tries, fetchSuffixList, null))
 		.then((response) => response.text())
 		.then((text) => retainSuffixList(text.split('\n')))
-		.then(fetchUnlistedSuffixesList(5, null))
-}
-
-function fetchUnlistedSuffixesList(tries) {
-	fetch('https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt')
-		.then((r) => retryFetch(r, tries, fetchUnlistedSuffixesList, null))
-		.then((response) => response.text())
-		.then((text) => retainUnlistedSuffixesList(text.split('\n')))
 }
 
 function fetchRemoteBlocklist(tries, url) {
@@ -502,7 +476,7 @@ function encode(input) {
 	return output.join('')
 }
 
-function sanitizeDomains(domains, skipRegex, forRemoteList) {
+function sanitizeDomains(domains, forRemoteList) {
 	let sanitizedDomains = []
 	let reg = new RegExp(/[A-Z0-9][A-Z0-9_-]*(\.[A-Z0-9][A-Z0-9_-]*)+/i)
 	for (let i = 0; i < domains.length; i++) {
@@ -511,7 +485,7 @@ function sanitizeDomains(domains, skipRegex, forRemoteList) {
 			if (domain.startsWith('#')) {
 				continue
 			}
-			domain = domain.replace(/^(127\.0\.0\.1|0\.0\.0\.0|255\.255\.255\.255|localhost) /, '')
+			domain = domain.replace(/(localhost|(127\.0|0\.0|255\.255|192\.168)\.\d+\.\d+)/, '')
 		}
 		domain = domain.replace(/^.*:\/\/|[\/,\:].*$/g, '')
 		let newDomain = []
@@ -521,13 +495,9 @@ function sanitizeDomains(domains, skipRegex, forRemoteList) {
 			newDomain.push(ascii)
 		}
 		domain = newDomain.join('.')
-		if (skipRegex) {
-			sanitizedDomains.push(domain.toLowerCase())
-		} else {
-			let checkedDomain = reg.exec(domain)
-			if (checkedDomain !== null) {
-				sanitizedDomains.push(checkedDomain[0].toLowerCase())
-			}
+		let checkedDomain = reg.exec(domain)
+		if (checkedDomain !== null) {
+			sanitizedDomains.push(checkedDomain[0].toLowerCase())
 		}
 	}
 	return sanitizedDomains

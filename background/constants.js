@@ -4,9 +4,6 @@ const defaultSettings = {
 	showBlocked: 0,
 	showButtons: 0
 }
-const defaultBlocklist = {
-	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
-}
 const css = {
 	blockDiv: 'sesb-block-div',
 	unblockDiv: 'sesb-unblock-div',
@@ -53,4 +50,10 @@ const actions = {
 	removeFromRemoteWhitelists: 19,
 	addBlocklistsFromUrls: 20,
 	addWhitelistsFromUrls: 21
+}
+const urls = {
+	suffixList: 'https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt'
+}
+const defaultBlocklist = {
+	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
 }

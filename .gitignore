@@ -3,3 +3,4 @@ web-ext-artifacts
 *.xpi
 *.bat
 *.ps1
+update-suffix-list.htm

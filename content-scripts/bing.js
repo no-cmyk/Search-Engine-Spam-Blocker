@@ -81,14 +81,7 @@ async function handleResults(elements) {
 }
 
 function getUrl(e) {
-	let links = e.getElementsByTagName('a')
-	let href
-	if (e.classList.contains(textResult)) {
-		href = links[links[0].href === '' ? 1 : 0].href
-	} else {
-		href = links[1] === undefined ? e.nextElementSibling.getElementsByTagName('a')[0].href : links[1].href
-	}
-	return href.replace(regex.urlRegex, '')
+	return ((e.classList.contains(textResult)) ? e.getElementsByTagName('a')[0].getAttribute('hover-url') : e.getElementsByTagName('a')[1].href).replace(regex.urlRegex, '')
 }
 
 /*---Add block/unblock buttons---*/

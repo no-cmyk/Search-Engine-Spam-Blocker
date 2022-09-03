@@ -17,8 +17,8 @@ const css = {
 	whitelistedByRemote: 'sesb-whitelisted-by-remote'
 }
 const regex = {
-	urlRegex: /^http.*:\/\/|\/.*$|:\d+/g,
-	urlRegexWithArrow: /^http.*:\/\/|\/.*$|:\d+|\s›.*/g
+	urlRegex: /^http.*?:\/\/|\/.*$|:\d+/g,
+	urlRegexWithArrow: /^http.*?:\/\/|\/.*$|:\d+|\s›.*/g
 }
 const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',

@@ -3,7 +3,7 @@ let settings
 let done = {}
 const textResult = 'b_algo'
 const imgResult = 'imgpt'
-const allResults = '.' + textResult + '\,.' + imgResult
+const allResults = '.' + textResult + '[data-bm]\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
 document.addEventListener('load', scanResults, true)
@@ -54,7 +54,11 @@ async function update() {
 
 function scanResults() {
 	let elements = []
-	for (const e of document.querySelectorAll(allResults)) {
+	let list = document.querySelectorAll(allResults)
+	if (list.length === 0) {
+		setTimeout(5000, function(){list = document.querySelectorAll(allResults)})
+	}
+	for (const e of list) {
 		if (e.getAttribute(css.sesbId) === null) {
 			e.setAttribute(css.sesbId, Math.random())
 		}

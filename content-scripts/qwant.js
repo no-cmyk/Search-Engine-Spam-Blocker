@@ -6,7 +6,7 @@ const imgResult = 'imageResult'
 const allResults = '[data-testid="' + textResult + '"],[data-testid="' + imgResult + '"]'
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
-document.addEventListener('load', setTimeout(scanResults, 2000), true)
+document.addEventListener('load', setInterval(scanResults, 2000), true)
 
 /*---Handle settings---*/
 

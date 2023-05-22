@@ -14,11 +14,14 @@ const css = {
 	sesbId: 'sesb-id',
 	blocked: 'sesb-blocked',
 	blockedByRemote: 'sesb-blocked-by-remote',
-	whitelistedByRemote: 'sesb-whitelisted-by-remote'
+	whitelistedByRemote: 'sesb-whitelisted-by-remote',
+	nested: 'sesb-nested',
+	nestedResult: 'sesb-nested-result'
 }
 const regex = {
 	urlRegex: /^http.*?:\/\/|\/.*$|:\d+/g,
-	urlRegexWithArrow: /^http.*?:\/\/|\/.*$|:\d+|\s›.*/g
+	urlRegexWithArrow: /^http.*?:\/\/|\/.*$|:\d+|\s›.*/g,
+	nestedUrlRegex: /=\/\/.*?\//g
 }
 const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',

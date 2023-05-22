@@ -39,7 +39,7 @@
 			"css": ["background/sesb.css"]
 		},
 		{
-			"matches": ["*://search.yahoo.com/search*"],
+			"matches": ["*://*.search.yahoo.com/search*"],
 			"run_at": "document_start",
 			"js": ["background/constants.js", "content-scripts/yahoo.js"],
 			"css": ["background/sesb.css"]

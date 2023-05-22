@@ -43,3 +43,7 @@
 .sesb-fix-image-size {
 	position: relative !important;
 }
+
+.sesb-nested {
+	color: darkorange !important;
+}

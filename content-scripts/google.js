@@ -4,8 +4,7 @@ let done = {}
 const textResult = 'g'
 const textResultMobile = 'xpd'
 const imgResult = 'isv-r'
-const allTextResults = '.' + textResult + '\,.' + textResultMobile
-const allResults = allTextResults + '\,.' + imgResult
+const allResults = '.' + css.nestedResult + '\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
 document.addEventListener('DOMContentLoaded', scanTextResults, true)
@@ -57,7 +56,12 @@ async function update() {
 
 function scanTextResults() {
 	let elements = []
-	for (const e of document.querySelectorAll(allTextResults)) {
+	for (const e of document.querySelectorAll('.' + textResult)) {
+		for (const el of e.querySelectorAll(':scope > div')) {
+			el.classList.add(css.nestedResult)
+		}
+	}
+	for (const e of document.querySelectorAll('.' + css.nestedResult)) {
 		if (shouldHandle(e)) {
 			giveId(e)
 			elements.push(e)
@@ -89,9 +93,11 @@ function giveId(e) {
 async function handleResults(elements) {
 	let toSend = []
 	for (const e of elements) {
-		const url = getUrl(e)
-		if (url !== '' && url !== undefined) {
-			toSend.push({id: e.getAttribute(css.sesbId), url: url})
+		const urls = getUrls(e)
+		for (const u of urls) {
+			if (u !== '' && u !== undefined) {
+				toSend.push({id: e.getAttribute(css.sesbId), url: u})
+			}
 		}
 	}
 	const responses = await browser.runtime.sendMessage({action: actions.check, urls: toSend})
@@ -110,13 +116,23 @@ function shouldHandle(e) {
 			&& !e.parentElement.parentElement.parentElement.parentElement.parentElement.classList.contains(textResult)
 	}
 	return e.firstElementChild.firstElementChild !== null
-		&& e.querySelector(allTextResults) === null
 		&& e.firstElementChild.firstElementChild.nodeName === 'A'
 		&& e.parentElement.parentElement.nodeName !== 'FOOTER'
 }
 
-function getUrl(e) {
-	return e.getElementsByTagName('a')[e.classList.contains(textResult) || e.classList.contains(textResultMobile) ? 0 : 1].href.replace(regex.urlRegex, '')
+function getUrls(e) {
+	let urls = []
+	if (e.classList.contains(css.nestedResult) || e.classList.contains(textResultMobile)) {
+		let url = e.getElementsByTagName('a')[0].href.replace(regex.urlRegex, '')
+		urls.push(url)
+		let nestedUrl = e.getElementsByTagName('a')[0].href.match(regex.nestedUrlRegex, '')
+		if (nestedUrl !== null) {
+			urls.push(nestedUrl[0].replace('=//', '').replace(/\/.*/, ''))
+		}
+	} else {
+		urls.push(e.getElementsByTagName('a')[1].href.replace(regex.urlRegex, ''))
+	}
+	return urls
 }
 
 /*---Add block/unblock buttons---*/
@@ -124,18 +140,22 @@ function getUrl(e) {
 function addButtons(responses) {
 	for (const response of responses) {
 		let e = document.querySelector('[' + css.sesbId + '="' + response.id + '"]')
-		e.classList.toggle(css.blocked, response.toRemove === true)
+		if (response.toRemove === true) {
+			e.classList.add(css.blocked)
+		}
 		let byRemote = response.inRemoteBlocklist !== undefined || response.inRemoteWhitelist !== undefined
 		if (response.whitelisted === false && response.inRemoteBlocklist !== undefined && e.querySelector('.' + css.blockedByRemote) === null) {
 			addBanner(e, response.inRemoteBlocklist, true)
 		} else if (response.inRemoteWhitelist !== undefined && e.querySelector('.' + css.whitelistedByRemote) === null) {
 			addBanner(e, response.inRemoteWhitelist, false)
 		}
-		if (e.querySelector('.' + css.blockDiv) === null && response.whitelisted === false) {
-			addButton(e, response.domains, true, byRemote)
+		let blockDiv = e.querySelector('.' + css.blockDiv)
+		let unblockDiv = e.querySelector('.' + css.unblockDiv)
+		if ((blockDiv === null || !blockDiv.innerText.includes(response.domains)) && response.whitelisted === false) {
+			addButton(e, response.domains, true, byRemote, blockDiv !== null)
 		}
-		if (e.querySelector('.' + css.unblockDiv) === null) {
-			addButton(e, response.domains, false, byRemote)
+		if (unblockDiv === null || !unblockDiv.innerText.includes(response.domains)) {
+			addButton(e, response.domains, false, byRemote, unblockDiv !== null)
 		}
 	}
 	update()
@@ -149,27 +169,37 @@ function addBanner(e, listUrl, block) {
 	e.append(div)
 }
 
-function addButton(e, domains, block, byRemote) {
-	const div = document.createElement('div')
-	div.classList.add(block ? css.blockDiv : css.unblockDiv)
-	div.classList.add(css.hidden)
-	div.innerText = block ? texts.block : texts.unblock
+function addButton(e, domains, block, byRemote, nested) {
+	let div
+	const divClass = block ? css.blockDiv : css.unblockDiv
+	if (nested) {
+		div = e.querySelector('.' + divClass)
+	} else {
+		div = document.createElement('div')
+		div.classList.add(divClass)
+		div.classList.add(css.hidden)
+		div.innerText = block ? texts.block : texts.unblock
+	}
 	for (let i = domains.length - 1; i >= 0; i--) {
 		const button = document.createElement('button')
+		if (nested) {
+			button.classList.add(css.nested)
+		}
 		button.innerText = domains[i]
 		button.addEventListener('click', function(){updateResults(domains[i], block, byRemote)})
 		div.appendChild(button)
 	}
-	e.classList.add(css.fixHeight)
-	e.append(div)
+	if (!nested) {
+		e.classList.add(css.fixHeight)
+		e.append(div)
+	}
 }
 
 async function updateResults(url, block, byRemote) {
 	const response = await browser.runtime.sendMessage({action: block ? actions.update : actions.unblock, url: url, mustBeWhitelisted: !block && byRemote})
 	for (const e of document.querySelectorAll(allResults)) {
-		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote)
+		e.classList.remove(css.blocked, css.blockedShow, css.blockedByRemote, css.whitelistedByRemote, css.fixHeight)
 		e.style.height = window.getComputedStyle(e).height
-		e.classList.remove(css.fixHeight)
 	}
 	for (const e of document.querySelectorAll(allButtons)) {
 		e.remove()

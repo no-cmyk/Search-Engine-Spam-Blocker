@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Search Engine Spam Blocker",
-	"version": "2.2.9",
+	"version": "2.3.0",
 	"description": "Block sites from search engines' results",
 	"homepage_url": "https://github.com/no-cmyk/search-engine-spam-blocker",
 	"icons": {
@@ -39,7 +39,7 @@
 			"css": ["background/sesb.css"]
 		},
 		{
-			"matches": ["*://search.yahoo.com/search*"],
+			"matches": ["*://*.search.yahoo.com/search*"],
 			"run_at": "document_start",
 			"js": ["background/constants.js", "content-scripts/yahoo.js"],
 			"css": ["background/sesb.css"]

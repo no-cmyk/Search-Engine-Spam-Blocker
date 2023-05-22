@@ -10,6 +10,7 @@
 	line-height: normal;
 	text-align: left;
 	padding: 4px;
+	width: max-content;
 }
 
 .sesb-block-div button, .sesb-unblock-div button {

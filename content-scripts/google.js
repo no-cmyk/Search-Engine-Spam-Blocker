@@ -166,6 +166,7 @@ function addBanner(e, listUrl, block) {
 	div.classList.add(block ? css.blockedByRemote : css.whitelistedByRemote)
 	div.innerText = (block ? texts.blockedByRemote : texts.whitelistedByRemote) + listUrl
 	e.classList.add(css.fixHeight)
+	e.classList.toggle(css.fixWidth, e.classList.contains(css.nestedResult))
 	e.append(div)
 }
 

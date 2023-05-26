@@ -9,6 +9,7 @@ const css = {
 	unblockDiv: 'sesb-unblock-div',
 	blockedShow: 'sesb-blocked-show',
 	fixHeight: 'sesb-fix-height',
+	fixWidth: 'sesb-fix-width',
 	fixImageSize: 'sesb-fix-image-size',
 	hidden: 'sesb-hidden',
 	sesbId: 'sesb-id',

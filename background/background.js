@@ -289,7 +289,7 @@ async function updateLists() {
 	remoteWhitelistedDomains = {}
 	const yourBlocklistJson = await browser.storage.local.get('sesbYourBlocklist').then((r) => r.sesbYourBlocklist)
 	const whitelistJson = await browser.storage.local.get('sesbWhitelist').then((r) => r.sesbWhitelist)
-	let remoteBlocklistsJson = await browser.storage.local.get('sesbRemoteBlocklists').then((r) => r.sesbRemoteBlocklists) ?? JSON.stringify(defaultBlocklist)
+	let remoteBlocklistsJson = await browser.storage.local.get('sesbRemoteBlocklists').then((r) => r.sesbRemoteBlocklists) ?? JSON.stringify(urls.defaultBlocklist)
 	const remoteWhitelistsJson = await browser.storage.local.get('sesbRemoteWhitelists').then((r) => r.sesbRemoteWhitelists)
 	if (yourBlocklistJson) {
 		yourBlocklist = JSON.parse(yourBlocklistJson)

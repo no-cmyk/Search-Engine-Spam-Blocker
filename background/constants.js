@@ -22,7 +22,7 @@ const css = {
 const regex = {
 	urlRegex: /^http.*?:\/\/|\/.*$|:\d+/g,
 	urlRegexWithArrow: /^http.*?:\/\/|\/.*$|:\d+|\s›.*/g,
-	nestedUrlRegex: /=\/\/.*?\//g
+	nestedUrlRegex: /(=|@)\/\/(.*?\/|.*)/g
 }
 const texts = {
 	clearBlocklistAlert: 'WARNING:\n\nThis will irreversibly remove all domains from your blocklist,\ndo you really want to proceed?',
@@ -56,8 +56,6 @@ const actions = {
 	addWhitelistsFromUrls: 21
 }
 const urls = {
-	suffixList: 'https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt'
-}
-const defaultBlocklist = {
-	'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt': true
+	suffixList: 'https://raw.githubusercontent.com/no-cmyk/Unlisted-Domain-Suffixes/main/suffixes.txt',
+	defaultBlocklist: 'https://raw.githubusercontent.com/no-cmyk/Search-Engine-Spam-Blocklist/master/blocklist.txt'
 }

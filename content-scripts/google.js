@@ -181,6 +181,7 @@ function addButton(e, domains, block, byRemote, nested) {
 		div.classList.add(css.hidden)
 		div.innerText = block ? texts.block : texts.unblock
 	}
+	div.classList.toggle(css.fixWidth, div.classList.contains(css.nestedResult))
 	for (let i = domains.length - 1; i >= 0; i--) {
 		const button = document.createElement('button')
 		if (nested) {

@@ -125,9 +125,12 @@ function getUrls(e) {
 	if (e.classList.contains(css.nestedResult) || e.classList.contains(textResultMobile)) {
 		let url = e.getElementsByTagName('a')[0].href.replace(regex.urlRegex, '')
 		urls.push(url)
-		let nestedUrl = e.getElementsByTagName('a')[0].href.match(regex.nestedUrlRegex, '')
+		let nestedUrl = e.getElementsByTagName('a')[0].href.match(regex.nestedUrlRegex)
 		if (nestedUrl !== null) {
 			urls.push(nestedUrl[0].replace('=//', '').replace('@//', '').replace(/\/.*/, ''))
+		} else if (e.querySelector('cite') !== null && e.querySelector('cite').querySelector('span') !== null && e.querySelector('cite').querySelector('span').innerText.includes('›')) {
+			let partialNestedUrl = e.querySelector('cite').querySelector('span').innerText.split(' ').reverse()[0].replace(/\.\.\.$/,'')
+			urls.push(e.getElementsByTagName('a')[0].href.match(new RegExp(partialNestedUrl + '.*'))[0].replace(regex.urlRegex, ''))
 		}
 	} else {
 		urls.push(e.getElementsByTagName('a')[1].href.replace(regex.urlRegex, ''))

@@ -128,9 +128,14 @@ function getUrls(e) {
 		let nestedUrl = e.getElementsByTagName('a')[0].href.match(regex.nestedUrlRegex)
 		if (nestedUrl !== null) {
 			urls.push(nestedUrl[0].replace('=//', '').replace('@//', '').replace(/\/.*/, ''))
-		} else if (e.querySelector('cite') !== null && e.querySelector('cite').querySelector('span') !== null && e.querySelector('cite').querySelector('span').innerText.includes('›')) {
-			let partialNestedUrl = e.querySelector('cite').querySelector('span').innerText.split(' ').reverse()[0].replace(/\.\.\.$/,'')
-			urls.push(e.getElementsByTagName('a')[0].href.match(new RegExp(partialNestedUrl + '.*'))[0].replace(regex.urlRegex, ''))
+		} else if (e.querySelector('cite') !== null && e.querySelector('cite').querySelector('span') !== null) {
+			let arrowsUrl = e.querySelector('cite').querySelector('span').innerText.split(' ').reverse()[0].replace(/\.\.\.$/,'')
+			if (arrowsUrl.includes('›')) {
+				let regMatch = e.getElementsByTagName('a')[0].href.match(new RegExp(arrowsUrl + '.*'))
+				if (regMatch !== null && regMatch[0].includes('.')) {
+					urls.push(regMatch[0].replace(regex.urlRegex, ''))
+				}
+			}
 		}
 	} else {
 		urls.push(e.getElementsByTagName('a')[1].href.replace(regex.urlRegex, ''))

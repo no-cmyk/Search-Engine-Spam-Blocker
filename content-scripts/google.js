@@ -127,7 +127,7 @@ function getUrls(e) {
 		urls.push(url)
 		let nestedUrl = e.getElementsByTagName('a')[0].href.match(regex.nestedUrlRegex)
 		if (nestedUrl !== null) {
-			urls.push(nestedUrl[0].replace('=//', '').replace('@//', '').replace(/\/.*/, ''))
+			urls.push(nestedUrl[0].replace(/^.*?\/\//, '').replace(/^.*?%2F%2F/,'').replace(/(\/|%2F).*/, ''))
 		} else if (e.querySelector('cite') !== null && e.querySelector('cite').querySelector('span') !== null) {
 			let arrowsUrl = e.querySelector('cite').querySelector('span').innerText.split(' ').reverse()[0].replace(/\.\.\.$/,'')
 			if (arrowsUrl.includes('›')) {

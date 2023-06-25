@@ -127,13 +127,19 @@ function getUrls(e) {
 		urls.push(url)
 		let nestedUrl = e.getElementsByTagName('a')[0].href.match(regex.nestedUrlRegex)
 		if (nestedUrl !== null) {
-			urls.push(nestedUrl[0].replace(/^.*?\/\//, '').replace(/^.*?%2F%2F/,'').replace(/(\/|%2F).*/, ''))
+			let sanitizedUrl = nestedUrl[0].replace(/^.*?\/\//, '').replace(/^.*?%2F%2F/,'').replace(/(\/|%2F).*/, '').replace(/^.*=/, '')
+			if (sanitizedUrl !== url) {
+				urls.push(sanitizedUrl)
+			}
 		} else if (e.querySelector('cite') !== null && e.querySelector('cite').querySelector('span') !== null) {
 			let arrowsUrl = e.querySelector('cite').querySelector('span').innerText.split(' ').reverse()[0].replace(/\.\.\.$/,'')
 			if (arrowsUrl.includes('›')) {
 				let regMatch = e.getElementsByTagName('a')[0].href.match(new RegExp(arrowsUrl + '.*'))
 				if (regMatch !== null && regMatch[0].includes('.')) {
-					urls.push(regMatch[0].replace(regex.urlRegex, ''))
+					let sanitizedUrl = regMatch[0].replace(regex.urlRegex, '')
+					if (sanitizedUrl !== url) {
+						urls.push(sanitizedUrl)
+					}
 				}
 			}
 		}

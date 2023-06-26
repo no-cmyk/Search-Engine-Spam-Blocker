@@ -8,7 +8,14 @@ const allResults = '.' + css.nestedResult + '\,.' + imgResult
 const allButtons = '.' + css.blockDiv + '\,.' + css.unblockDiv + '\,.' + css.blockedByRemote + '\,.' + css.whitelistedByRemote
 
 document.addEventListener('DOMContentLoaded', scanTextResults, true)
+document.addEventListener('DOMContentLoaded', addChangePageListener, true)
 document.addEventListener('load', scanImageResults, true)
+
+function addChangePageListener() {
+	if (document.querySelector('[data-dt]') !== null) {
+		document.querySelector('[data-dt]').addEventListener('click', function(){setTimeout(updateResults, 1000)})
+	}
+}
 
 /*---Handle settings---*/
 
